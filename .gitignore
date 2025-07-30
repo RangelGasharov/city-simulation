@@ -14,6 +14,7 @@
 *.o
 *.pch
 *.pdb
+*.bat
 
 *.log
 *.tmp
