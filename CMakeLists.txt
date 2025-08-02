@@ -7,6 +7,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(include)
 
+add_compile_definitions(SHADER_DIR="${CMAKE_SOURCE_DIR}/src/shaders")
+
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
 file(GLOB SOURCES "src/*.cpp" "src/*.c")
