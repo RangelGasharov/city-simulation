@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <GL/gl.h>
+#include <cmath>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -45,6 +46,13 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(window);
+
+    gladLoadGL();
+
+    glClearColor(0.09f, 0.16f, 0.25f, 1.0f);
+
+    glClear(GL_COLOR_BUFFER_BIT);
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -55,16 +63,20 @@ int main()
     }
 
     float vertices[] = {
-        0.5f, 0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-        -0.5f, 0.5f, 0.0f};
+        -0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
+        0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
+        0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f,
+        -0.5f / 2, 0.5f * float(sqrt(3)) / 6, 0.0f,
+        0.5f / 2, 0.5f * float(sqrt(3)) / 6, 0.0f,
+        0.0f, -0.5f * float(sqrt(3)) / 3, 0.0f};
 
     unsigned int indices[] = {
-        0, 1, 3,
-        1, 2, 3};
+        0, 3, 5,
+        3, 2, 4,
+        5, 4, 1};
 
     unsigned int VAO, VBO, EBO;
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -80,8 +92,11 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
 
@@ -105,30 +120,37 @@ int main()
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
 
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success)
     {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
     }
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
 
+        glClearColor(0.09f, 0.16f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteProgram(shaderProgram);
+
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
