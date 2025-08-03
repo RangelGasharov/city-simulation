@@ -7,6 +7,7 @@
 #include "headers/VAO.h"
 #include "headers/VBO.h"
 #include "headers/EBO.h"
+#include "headers/Texture.h"
 #include "stb/stb_image.h"
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
@@ -82,32 +83,8 @@ int main()
 
     GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
-    int widthImage, heightImage, numberOfColorChannels;
-    unsigned char *bytes = stbi_load(TEXTURE_DIR "/brick_texture.png", &widthImage, &heightImage, &numberOfColorChannels, 0);
-
-    if (!bytes)
-    {
-        std::cerr << "Failed to load texture: " << stbi_failure_reason() << std::endl;
-        return -1;
-    }
-
-    GLenum format = (numberOfColorChannels == 4) ? GL_RGBA : GL_RGB;
-
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImage, heightImage, 0, format, GL_UNSIGNED_BYTE, bytes);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(bytes);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    Texture brickTexture(TEXTURE_DIR "/brick_texture.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+    brickTexture.texUnit(shaderProgram, "tex0", 0);
 
     GLuint tex0Uni = glGetUniformLocation(shaderProgram.ID, "tex0");
     glUniform1i(tex0Uni, 0);
@@ -121,12 +98,10 @@ int main()
 
         shaderProgram.Activate();
         glUniform1f(uniID, 0.0f);
-
-        glBindTexture(GL_TEXTURE_2D, texture);
+        brickTexture.Bind();
 
         VAO1.Bind();
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -135,7 +110,7 @@ int main()
     VAO1.Delete();
     VBO1.Delete();
     EBO1.Delete();
-    glDeleteTextures(1, &texture);
+    brickTexture.Delete();
     shaderProgram.Delete();
 
     glfwDestroyWindow(window);
