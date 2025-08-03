@@ -32,43 +32,16 @@ Shader::Shader(const char *vertexFile, const char *fragmentFile)
     glCompileShader(vertexShader);
     compileErrors(vertexShader, "VERTEX");
 
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
-    }
-
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
     glCompileShader(fragmentShader);
     compileErrors(fragmentShader, "FRAGMENT");
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
-    }
 
     ID = glCreateProgram();
     glAttachShader(ID, vertexShader);
     glAttachShader(ID, fragmentShader);
     glLinkProgram(ID);
     compileErrors(ID, "PROGRAM");
-
-    glGetProgramiv(ID, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        glGetProgramInfoLog(ID, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
-                  << infoLog << std::endl;
-    }
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
@@ -95,16 +68,18 @@ void Shader::compileErrors(unsigned int shader, const char *type)
         {
             glGetShaderInfoLog(shader, 1024, NULL, infoLog);
             std::cout << "SHADER_COMPILATION_ERROR for:" << type << "\n"
+                      << infoLog << "\n"
                       << std::endl;
         }
     }
     else
     {
-        glGetProgramiv(shader, GL_COMPILE_STATUS, &hasCompiled);
+        glGetProgramiv(shader, GL_LINK_STATUS, &hasCompiled);
         if (hasCompiled == GL_FALSE)
         {
             glGetProgramInfoLog(shader, 1024, NULL, infoLog);
             std::cout << "SHADER_LINKING_ERROR for:" << type << "\n"
+                      << infoLog << "\n"
                       << std::endl;
         }
     }

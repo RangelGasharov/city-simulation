@@ -8,6 +8,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 include_directories(include)
 
 add_compile_definitions(SHADER_DIR="${CMAKE_SOURCE_DIR}/src/shaders")
+add_compile_definitions(TEXTURE_DIR="${CMAKE_SOURCE_DIR}/src/textures")
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
