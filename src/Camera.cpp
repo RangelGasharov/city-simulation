@@ -5,16 +5,11 @@ Camera::Camera(int width, int height, glm::vec3 position)
     Camera::width = width;
     Camera::height = height;
     Position = position;
-
-    updateOrientationFromAngles();
 }
 
-void Camera::Matrix(float nearPlane, float farPlane, Shader &shader, const char *uniform)
+void Camera::Matrix(Shader &shader, const char *uniform)
 {
-    glm::mat4 view = glm::lookAt(Position, Position + Orientation, Up);
-    glm::mat4 projection = glm::perspective(glm::radians(FOV), (float)width / height, nearPlane, farPlane);
-
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(projection * view));
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
 }
 
 void Camera::Inputs(GLFWwindow *window, float deltaTime)
@@ -86,6 +81,17 @@ void Camera::updateOrientationFromAngles()
     Orientation = glm::normalize(direction);
 }
 
+void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane)
+{
+    glm::mat4 view = glm::mat4(1.0f);
+    glm::mat4 projection = glm::mat4(1.0f);
+
+    view = glm::lookAt(Position, Position + Orientation, Up);
+    projection = glm::perspective(glm::radians(FOVdeg), (float)width / height, nearPlane, farPlane);
+
+    cameraMatrix = projection * view;
+}
+
 void Camera::ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
 {
     Camera *cam = static_cast<Camera *>(glfwGetWindowUserPointer(window));
@@ -93,8 +99,8 @@ void Camera::ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
         return;
 
     cam->FOV -= (float)yOffset * 2.0f;
-    if (cam->FOV < 30.0f)
-        cam->FOV = 30.0f;
-    if (cam->FOV > 90.0f)
-        cam->FOV = 90.0f;
+    if (cam->FOV < 10.0f)
+        cam->FOV = 10.0f;
+    if (cam->FOV > 120.0f)
+        cam->FOV = 120.0f;
 }
