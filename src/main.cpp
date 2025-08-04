@@ -3,14 +3,36 @@
 #include <GLFW/glfw3.h>
 #include <GL/gl.h>
 #include <cmath>
+#include <stb/stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "headers/Texture.h"
 #include "headers/shaderClass.h"
 #include "headers/VAO.h"
 #include "headers/VBO.h"
 #include "headers/EBO.h"
-#include "headers/Texture.h"
-#include "stb/stb_image.h"
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
+
+const unsigned int width = 800;
+const unsigned int height = 800;
+
+GLfloat vertices[] =
+    {
+        -0.5f, 0.0f, 0.5f, 0.83f, 0.70f, 0.44f, 0.0f, 0.0f,
+        -0.5f, 0.0f, -0.5f, 0.83f, 0.70f, 0.44f, 5.0f, 0.0f,
+        0.5f, 0.0f, -0.5f, 0.83f, 0.70f, 0.44f, 0.0f, 0.0f,
+        0.5f, 0.0f, 0.5f, 0.83f, 0.70f, 0.44f, 5.0f, 0.0f,
+        0.0f, 0.8f, 0.0f, 0.92f, 0.86f, 0.76f, 2.5f, 5.0f};
+
+GLuint indices[] =
+    {
+        0, 1, 2,
+        0, 2, 3,
+        0, 1, 4,
+        1, 2, 4,
+        2, 3, 4,
+        3, 0, 4};
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -30,41 +52,17 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "Test", NULL, NULL);
-
+    GLFWwindow *window = glfwCreateWindow(width, height, "Test", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
-
-    glfwMakeContextCurrent(window);
     glfwMakeContextCurrent(window);
 
     gladLoadGL();
-
-    glClearColor(0.09f, 0.16f, 0.25f, 1.0f);
-
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cerr << "Failed to initialize GLAD\n";
-        return -1;
-    }
-
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f};
-
-    unsigned int indices[] = {
-        0, 2, 1,
-        0, 3, 2};
+    glViewport(0, 0, width, height);
 
     Shader shaderProgram(SHADER_DIR "/default.vert", SHADER_DIR "/default.frag");
 
@@ -86,23 +84,47 @@ int main()
     Texture brickTexture(TEXTURE_DIR "/brick_texture.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
     brickTexture.texUnit(shaderProgram, "tex0", 0);
 
-    GLuint tex0Uni = glGetUniformLocation(shaderProgram.ID, "tex0");
-    glUniform1i(tex0Uni, 0);
+    float rotation = 0.0f;
+    double prevTime = glfwGetTime();
+    glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
 
         glClearColor(0.09f, 0.16f, 0.25f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shaderProgram.Activate();
         glUniform1f(uniID, 0.0f);
         brickTexture.Bind();
 
-        VAO1.Bind();
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        double currentTime = glfwGetTime();
+        if (currentTime - prevTime >= 1 / 60)
+        {
+            rotation += 0.01f;
+            prevTime = currentTime;
+        }
 
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 proj = glm::mat4(1.0f);
+
+        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
+        proj = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
+
+        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
+
+        glUniform1f(uniID, 0.5f);
+        brickTexture.Bind();
+        VAO1.Bind();
+        glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
