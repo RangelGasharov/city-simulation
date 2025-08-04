@@ -13,6 +13,7 @@
 #include "headers/VAO.h"
 #include "headers/VBO.h"
 #include "headers/EBO.h"
+#include "headers/Camera.h"
 
 const unsigned int width = 800;
 const unsigned int height = 800;
@@ -79,50 +80,35 @@ int main()
     VBO1.Unbind();
     EBO1.Unbind();
 
-    GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
-
     Texture brickTexture(TEXTURE_DIR "/brick_texture.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
     brickTexture.texUnit(shaderProgram, "tex0", 0);
 
-    float rotation = 0.0f;
-    double prevTime = glfwGetTime();
     glEnable(GL_DEPTH_TEST);
+
+    Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
+    glfwSetWindowUserPointer(window, &camera);
+    glfwSetScrollCallback(window, Camera::ScrollCallback);
+
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
 
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
-
         glClearColor(0.09f, 0.16f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shaderProgram.Activate();
-        glUniform1f(uniID, 0.0f);
+
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        camera.Inputs(window, deltaTime);
+        camera.Matrix(0.1f, 100.0f, shaderProgram, "camMatrix");
+
         brickTexture.Bind();
 
-        double currentTime = glfwGetTime();
-        if (currentTime - prevTime >= 1 / 60)
-        {
-            rotation += 0.01f;
-            prevTime = currentTime;
-        }
-
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::mat4(1.0f);
-        glm::mat4 proj = glm::mat4(1.0f);
-
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-        view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
-        proj = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
-
-        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
-
-        glUniform1f(uniID, 0.5f);
-        brickTexture.Bind();
         VAO1.Bind();
         glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
