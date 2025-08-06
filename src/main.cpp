@@ -45,12 +45,15 @@ int main()
     glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 
     Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
     glfwSetWindowUserPointer(window, &camera);
     glfwSetScrollCallback(window, Camera::ScrollCallback);
 
-    Model model(MODEL_DIR "/bunny/scene.gltf");
+    Model bunny(MODEL_DIR "/bunny/scene.gltf");
+    Model ground(MODEL_DIR "/ground/scene.gltf");
+    Model trees(MODEL_DIR "/trees/scene.gltf");
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
@@ -58,7 +61,7 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
-        glClearColor(0.09f, 0.16f, 0.25f, 1.0f);
+        glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float currentFrame = glfwGetTime();
@@ -68,7 +71,9 @@ int main()
         camera.Inputs(window, deltaTime);
         camera.updateMatrix(camera.FOV, 0.1f, 100.0f);
 
-        model.Draw(shaderProgram, camera);
+        bunny.Draw(shaderProgram, camera);
+        ground.Draw(shaderProgram, camera);
+        trees.Draw(shaderProgram, camera);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
