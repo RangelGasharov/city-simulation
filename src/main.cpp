@@ -34,6 +34,7 @@ int main()
     glViewport(0, 0, width, height);
 
     Shader shaderProgram(SHADER_DIR "/default.vert", SHADER_DIR "/default.frag");
+    Shader outliningProgram(SHADER_DIR "/outlining.vert", SHADER_DIR "/outlining.frag");
 
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -46,6 +47,8 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
     glfwSetWindowUserPointer(window, &camera);
@@ -54,6 +57,8 @@ int main()
     Model bunny(MODEL_DIR "/bunny/scene.gltf");
     Model ground(MODEL_DIR "/ground/scene.gltf");
     Model trees(MODEL_DIR "/trees/scene.gltf");
+    Model crow(MODEL_DIR "/crow/scene.gltf");
+    Model outline(MODEL_DIR "/crow-outline/scene.gltf");
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
@@ -62,7 +67,7 @@ int main()
     {
         processInput(window);
         glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -74,6 +79,22 @@ int main()
         bunny.Draw(shaderProgram, camera);
         ground.Draw(shaderProgram, camera);
         trees.Draw(shaderProgram, camera);
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+        crow.Draw(shaderProgram, camera);
+
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+
+        outliningProgram.Activate();
+        glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 1.08f);
+        crow.Draw(shaderProgram, camera);
+
+        glStencilMask(0x00);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glEnable(GL_DEPTH_TEST);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
