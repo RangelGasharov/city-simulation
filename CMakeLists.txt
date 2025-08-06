@@ -9,6 +9,7 @@ include_directories(include)
 
 add_compile_definitions(SHADER_DIR="${CMAKE_SOURCE_DIR}/src/shaders")
 add_compile_definitions(TEXTURE_DIR="${CMAKE_SOURCE_DIR}/src/textures")
+add_compile_definitions(MODEL_DIR="${CMAKE_SOURCE_DIR}/src/models")
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
