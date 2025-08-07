@@ -34,6 +34,7 @@ int main()
     glViewport(0, 0, width, height);
 
     Shader shaderProgram(SHADER_DIR "/default.vert", SHADER_DIR "/default.frag");
+    Shader grassProgram(SHADER_DIR "/default.vert", SHADER_DIR "/grass.frag");
 
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -43,6 +44,10 @@ int main()
     shaderProgram.Activate();
     glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
     glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+
+    grassProgram.Activate();
+    glUniform4f(glGetUniformLocation(grassProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+    glUniform3f(glGetUniformLocation(grassProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -57,7 +62,7 @@ int main()
     Model ground(MODEL_DIR "/ground/scene.gltf");
     Model trees(MODEL_DIR "/trees/scene.gltf");
     Model crow(MODEL_DIR "/crow/scene.gltf");
-    Model outline(MODEL_DIR "/crow-outline/scene.gltf");
+    Model grass(MODEL_DIR "/grass/scene.gltf");
 
     double prevTime = 0.0;
     double crntTime = 0.0;
@@ -98,11 +103,16 @@ int main()
         trees.Draw(shaderProgram, camera);
         crow.Draw(shaderProgram, camera);
 
+        glDisable(GL_CULL_FACE);
+        grass.Draw(grassProgram, camera);
+        glEnable(GL_CULL_FACE);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     shaderProgram.Delete();
+    grassProgram.Delete();
 
     glfwDestroyWindow(window);
     glfwTerminate();
