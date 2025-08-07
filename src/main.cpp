@@ -34,7 +34,6 @@ int main()
     glViewport(0, 0, width, height);
 
     Shader shaderProgram(SHADER_DIR "/default.vert", SHADER_DIR "/default.frag");
-    Shader outliningProgram(SHADER_DIR "/outlining.vert", SHADER_DIR "/outlining.frag");
 
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -46,9 +45,9 @@ int main()
     glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_STENCIL_TEST);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
 
     Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
     glfwSetWindowUserPointer(window, &camera);
@@ -60,41 +59,44 @@ int main()
     Model crow(MODEL_DIR "/crow/scene.gltf");
     Model outline(MODEL_DIR "/crow-outline/scene.gltf");
 
-    float deltaTime = 0.0f;
-    float lastFrame = 0.0f;
+    double prevTime = 0.0;
+    double crntTime = 0.0;
+    double timeDiff;
+    unsigned int counter = 0;
 
     while (!glfwWindowShouldClose(window))
     {
+        crntTime = glfwGetTime();
+        timeDiff = crntTime - prevTime;
+        counter++;
+
         processInput(window);
         glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        crntTime = glfwGetTime();
+        timeDiff = crntTime - prevTime;
+        counter++;
 
-        camera.Inputs(window, deltaTime);
+        camera.Inputs(window, timeDiff);
+
+        if (timeDiff >= 1.0 / 30.0)
+        {
+            std::string FPS = std::to_string((1.0 / timeDiff) * counter);
+            std::string ms = std::to_string((timeDiff / counter) * 1000);
+            std::string newTitle = "YoutubeOpenGL - " + FPS + "FPS / " + ms + "ms";
+            glfwSetWindowTitle(window, newTitle.c_str());
+
+            prevTime = crntTime;
+            counter = 0;
+        }
+
         camera.updateMatrix(camera.FOV, 0.1f, 100.0f);
 
         bunny.Draw(shaderProgram, camera);
         ground.Draw(shaderProgram, camera);
         trees.Draw(shaderProgram, camera);
-
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(0xFF);
         crow.Draw(shaderProgram, camera);
-
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-        glStencilMask(0x00);
-        glDisable(GL_DEPTH_TEST);
-
-        outliningProgram.Activate();
-        glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 1.08f);
-        crow.Draw(shaderProgram, camera);
-
-        glStencilMask(0x00);
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glEnable(GL_DEPTH_TEST);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
