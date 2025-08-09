@@ -1,7 +1,7 @@
 #include "headers/Model.h"
 
 const unsigned int width = 1600;
-const unsigned int height = 1200;
+const unsigned int height = 900;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -45,14 +45,12 @@ int main()
     glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
     glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
-    grassProgram.Activate();
-    glUniform4f(glGetUniformLocation(grassProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-    glUniform3f(glGetUniformLocation(grassProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+
+    glEnable(GL_FRAMEBUFFER_SRGB);
 
     Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
     glfwSetWindowUserPointer(window, &camera);
@@ -61,7 +59,6 @@ int main()
     Model bunny(MODEL_DIR "/bunny/scene.gltf");
     Model ground(MODEL_DIR "/ground/scene.gltf");
     Model trees(MODEL_DIR "/trees/scene.gltf");
-    Model crow(MODEL_DIR "/crow/scene.gltf");
     Model grass(MODEL_DIR "/grass/scene.gltf");
 
     double prevTime = 0.0;
@@ -97,15 +94,9 @@ int main()
         }
 
         camera.updateMatrix(camera.FOV, 0.1f, 100.0f);
-
         bunny.Draw(shaderProgram, camera);
         ground.Draw(shaderProgram, camera);
         trees.Draw(shaderProgram, camera);
-        crow.Draw(shaderProgram, camera);
-
-        glDisable(GL_CULL_FACE);
-        grass.Draw(grassProgram, camera);
-        glEnable(GL_CULL_FACE);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

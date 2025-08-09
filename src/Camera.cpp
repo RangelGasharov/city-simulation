@@ -31,7 +31,7 @@ void Camera::Inputs(GLFWwindow *window, float deltaTime)
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         Position -= currentSpeed * Up * deltaTime;
 
-    float rotationAmount = glm::radians(45.0f * deltaTime);
+    float rotationAmount = glm::radians(20.0f * deltaTime);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         yaw -= glm::degrees(rotationAmount);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
@@ -53,7 +53,7 @@ void Camera::Inputs(GLFWwindow *window, float deltaTime)
         float rotX = sensitivity * (mouseY - height / 2) / height;
         float rotY = sensitivity * (mouseX - width / 2) / width;
 
-        pitch -= rotX;
+        pitch += rotX;
         yaw -= rotY;
 
         if (pitch > 89.0f)
