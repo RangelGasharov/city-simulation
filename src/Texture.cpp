@@ -8,6 +8,12 @@ Texture::Texture(const char *image, const char *texType, GLuint slot)
     stbi_set_flip_vertically_on_load(true);
     unsigned char *bytes = stbi_load(image, &widthImg, &heightImg, &numColCh, 0);
 
+    if (!bytes)
+    {
+        std::cerr << "Failed to load texture: " << image << std::endl;
+        throw std::runtime_error("texture load failed");
+    }
+
     glGenTextures(1, &ID);
     glActiveTexture(GL_TEXTURE0 + slot);
     unit = slot;
@@ -19,41 +25,10 @@ Texture::Texture(const char *image, const char *texType, GLuint slot)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    if (numColCh == 4)
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            widthImg,
-            heightImg,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            bytes);
-    else if (numColCh == 3)
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            widthImg,
-            heightImg,
-            0,
-            GL_RGB,
-            GL_UNSIGNED_BYTE,
-            bytes);
-    else if (numColCh == 1)
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            widthImg,
-            heightImg,
-            0,
-            GL_RED,
-            GL_UNSIGNED_BYTE,
-            bytes);
-    else
-        throw std::invalid_argument("Automatic Texture type recognition failed");
+    GLenum format = (numColCh == 1) ? GL_RED : (numColCh == 3) ? GL_RGB
+                                                               : GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, widthImg, heightImg, 0, format, GL_UNSIGNED_BYTE, bytes);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     glGenerateMipmap(GL_TEXTURE_2D);
 

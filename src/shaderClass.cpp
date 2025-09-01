@@ -6,8 +6,7 @@ std::string get_file_contents(const char *filename)
 
     if (!in)
     {
-        std::cerr << "Failed to open shader file: " << filename << std::endl;
-        exit(EXIT_FAILURE);
+        throw std::runtime_error(std::string("Failed to open shader file: ") + filename);
     }
 
     std::string contents;
