@@ -1,10 +1,75 @@
 #include "headers/Mesh.h"
+#include "headers/Perlin.h"
+
+Mesh generateTerrain(int size, float scale, Perlin &perlin)
+{
+    std::vector<Vertex> vertices;
+    std::vector<GLuint> indices;
+
+    for (int z = 0; z < size; z++)
+    {
+        for (int x = 0; x < size; x++)
+        {
+            float fx = (float)x / size * scale;
+            float fz = (float)z / size * scale;
+
+            float height = (float)perlin.noise(fx, fz) * 5.0f;
+
+            Vertex v;
+            v.position = glm::vec3(x - size / 2, height, z - size / 2);
+            v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+            v.texUV = glm::vec2((float)x / size, (float)z / size);
+
+            vertices.push_back(v);
+        }
+    }
+
+    for (int z = 0; z < size - 1; z++)
+    {
+        for (int x = 0; x < size - 1; x++)
+        {
+            int i0 = z * size + x;
+            int i1 = i0 + 1;
+            int i2 = i0 + size;
+            int i3 = i2 + 1;
+
+            indices.push_back(i0);
+            indices.push_back(i2);
+            indices.push_back(i1);
+
+            indices.push_back(i1);
+            indices.push_back(i2);
+            indices.push_back(i3);
+        }
+    }
+
+    return Mesh(vertices, indices);
+}
 
 Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<GLuint> &indices, std::vector<Texture> &textures)
 {
     Mesh::vertices = vertices;
     Mesh::indices = indices;
     Mesh::textures = textures;
+
+    VAO.Bind();
+    VBO VBO(vertices);
+    EBO EBO(indices);
+
+    VAO.LinkAttrib(VBO, 0, 3, GL_FLOAT, sizeof(Vertex), (void *)0);
+    VAO.LinkAttrib(VBO, 1, 3, GL_FLOAT, sizeof(Vertex), (void *)(3 * sizeof(float)));
+    VAO.LinkAttrib(VBO, 2, 3, GL_FLOAT, sizeof(Vertex), (void *)(6 * sizeof(float)));
+    VAO.LinkAttrib(VBO, 3, 2, GL_FLOAT, sizeof(Vertex), (void *)(9 * sizeof(float)));
+
+    VAO.Unbind();
+    VBO.Unbind();
+    EBO.Unbind();
+}
+
+Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<GLuint> &indices)
+{
+    Mesh::vertices = vertices;
+    Mesh::indices = indices;
 
     VAO.Bind();
     VBO VBO(vertices);
