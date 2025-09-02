@@ -49,7 +49,7 @@ vec4 direcLight()
 	float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 16);
 	float specular = specAmount * specularLight;
 
-   return (texture(diffuse0, texCoord) * (diffuse + ambient) + texture(specular0, texCoord).r * specular) * lightColor;
+    return (vec4(color, 1.0) * (diffuse + ambient) + specular) * lightColor;
 }
 
 vec4 spotLight()
@@ -72,7 +72,7 @@ vec4 spotLight()
 	float angle = dot(vec3(0.0f, -1.0f, 0.0f), -lightDirection);
 	float inten = clamp((angle - outerCone) / (innerCone - outerCone), 0.0f, 1.0f);
 
-    return (texture(diffuse0, texCoord) * (diffuse * inten + ambient) + texture(specular0, texCoord).r * specular * inten) * lightColor;
+    return (vec4(color, 1.0) * (diffuse * inten + ambient) + specular * inten) * lightColor;
 }
 
 float near = 0.1f;
@@ -86,11 +86,13 @@ float linearizeDepth(float depth)
 float logisticDepth(float depth, float steepness, float offset)
 {
 	float zVal = linearizeDepth(depth);
-	return (1 / (1 + exp(-steepness * (zVal - offset))));
+	return (1.0 / (1.0 + exp(-steepness * (zVal - offset))));
 }
 
 void main()
 {
     float depth = logisticDepth(gl_FragCoord.z, 0.5f, 5.0f);
-	FragColor = direcLight() * (1.0f - depth) + vec4(depth * vec3(0.85f, 0.85f, 0.90f), 1.0f);
+    vec4 lightColorOutput = direcLight();
+    vec3 fogColor = vec3(0.85, 0.85, 0.90);
+    FragColor = mix(lightColorOutput, vec4(fogColor, 0.1), depth * 0.2);
 }

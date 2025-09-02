@@ -1,4 +1,6 @@
 #include "headers/Model.h"
+#include "headers/Perlin.h"
+#include "headers/Terrain.h"
 
 const unsigned int width = 1600;
 const unsigned int height = 900;
@@ -56,10 +58,7 @@ int main()
     glfwSetWindowUserPointer(window, &camera);
     glfwSetScrollCallback(window, Camera::ScrollCallback);
 
-    Model bunny(MODEL_DIR "/bunny/scene.gltf");
-    Model ground(MODEL_DIR "/ground/scene.gltf");
-    Model trees(MODEL_DIR "/trees/scene.gltf");
-    Model grass(MODEL_DIR "/grass/scene.gltf");
+    Terrain terrain(100, 100, 5.0f, 42);
 
     double prevTime = 0.0;
     double crntTime = 0.0;
@@ -94,9 +93,7 @@ int main()
         }
 
         camera.updateMatrix(camera.FOV, 0.1f, 100.0f);
-        bunny.Draw(shaderProgram, camera);
-        ground.Draw(shaderProgram, camera);
-        trees.Draw(shaderProgram, camera);
+        terrain.mesh->Draw(shaderProgram, camera);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
