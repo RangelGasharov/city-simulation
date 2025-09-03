@@ -13,7 +13,7 @@ Mesh generateTerrain(int size, float scale, Perlin &perlin)
             float fx = (float)x / size * scale;
             float fz = (float)z / size * scale;
 
-            float height = (float)perlin.noise(fx, fz) * 5.0f;
+            float height = (float)perlin.noise(fx, fz, 0.0) * 5.0f;
 
             Vertex v;
             v.position = glm::vec3(x - size / 2, height, z - size / 2);

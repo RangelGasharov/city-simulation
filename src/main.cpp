@@ -8,6 +8,13 @@ const unsigned int height = 900;
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
+
+    Camera *cam = reinterpret_cast<Camera *>(glfwGetWindowUserPointer(window));
+    if (cam)
+    {
+        cam->width = width;
+        cam->height = height;
+    }
 }
 
 void processInput(GLFWwindow *window)
@@ -31,6 +38,7 @@ int main()
         return -1;
     }
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     gladLoadGL();
     glViewport(0, 0, width, height);
@@ -58,7 +66,7 @@ int main()
     glfwSetWindowUserPointer(window, &camera);
     glfwSetScrollCallback(window, Camera::ScrollCallback);
 
-    Terrain terrain(100, 100, 5.0f, 42);
+    Terrain terrain(200, 200, 10.0f, 42);
 
     double prevTime = 0.0;
     double crntTime = 0.0;
@@ -92,7 +100,7 @@ int main()
             counter = 0;
         }
 
-        camera.updateMatrix(camera.FOV, 0.1f, 100.0f);
+        camera.updateMatrix(camera.FOV, 0.1f, 1000.0f);
         terrain.mesh->Draw(shaderProgram, camera);
 
         glfwSwapBuffers(window);

@@ -13,19 +13,23 @@ Mesh *Terrain::generateTerrain(int width, int depth, float scale, unsigned int s
     std::vector<Texture> textures;
     Perlin perlin(seed);
 
+    int octaves = 8;
+    double persistence = 0.5;
+    double lacunarity = 2.0;
+
     for (int z = 0; z < depth; z++)
     {
         for (int x = 0; x < width; x++)
         {
-            float fx = (float)x / width;
-            float fz = (float)z / depth;
+            float fx = (float)x / width * scale;
+            float fz = (float)z / depth * scale;
 
-            float height = perlin.noise(fx * scale, fz * scale, 0.0);
+            float height = (float)perlin.fractalNoise(fx, fz, octaves, persistence, lacunarity);
 
             Vertex v{};
             v.position = glm::vec3(x, height * 10.0f, z);
             v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
-            v.color = glm::vec3(0.2f, 0.5f, 0.2f);
+            v.color = glm::vec3(0.1f, 0.4f, 0.1f);
             v.texUV = glm::vec2(fx, fz);
 
             vertices.push_back(v);

@@ -70,3 +70,22 @@ double Perlin::noise(double x, double y, double z) const
             v),
         w);
 }
+
+double Perlin::fractalNoise(double x, double y, double z, int octaves, double persistence, double lacunarity) const
+{
+    double total = 0.0;
+    double frequency = 1.0;
+    double amplitude = 1.0;
+    double maxValue = 0.0;
+
+    for (int i = 0; i < octaves; i++)
+    {
+        total += noise(x * frequency, y * frequency, z * frequency) * amplitude;
+
+        maxValue += amplitude;
+        amplitude *= persistence;
+        frequency *= lacunarity;
+    }
+
+    return std::max(-1.0, std::min(1.0, total / maxValue));
+}
