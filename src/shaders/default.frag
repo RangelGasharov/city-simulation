@@ -12,6 +12,18 @@ uniform vec4 lightColor;
 uniform vec3 lightPos;
 uniform vec3 camPos;
 
+vec3 getTerrainColor(float height)
+{
+    vec3 grass = vec3(0.1, 0.6, 0.1);
+    vec3 dirt  = vec3(0.5, 0.35, 0.2);
+    vec3 rock  = vec3(0.5, 0.5, 0.5);
+    vec3 snow  = vec3(1.0, 1.0, 1.0);
+
+    if (height < 3.0) return mix(grass, dirt, height / 3.0);
+    else if (height < 6.0) return mix(dirt, rock, (height-3.0)/3.0);
+    else return mix(rock, snow, (height-6.0)/4.0);
+}
+
 vec4 pointLight ()
 {
 	vec3 lightVec = lightPos - crntPos;
@@ -48,8 +60,9 @@ vec4 direcLight()
 	vec3 reflectionDirection = reflect(-lightDirection, normal);
 	float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 16);
 	float specular = specAmount * specularLight;
+	vec3 terrainColor = getTerrainColor(crntPos.y);
 
-    return (vec4(color, 1.0) * (diffuse + ambient) + specular) * lightColor;
+    return (vec4(terrainColor, 1.0) * (diffuse + ambient) + specular) * lightColor;
 }
 
 vec4 spotLight()
@@ -92,7 +105,7 @@ float logisticDepth(float depth, float steepness, float offset)
 void main()
 {
     float depth = logisticDepth(gl_FragCoord.z, 0.5f, 5.0f);
-    vec4 lightColorOutput = direcLight();
+    vec4 lightColorOutput = direcLight() * 0.25f;
     vec3 fogColor = vec3(0.85, 0.85, 0.90);
-    FragColor = mix(lightColorOutput, vec4(fogColor, 0.1), depth * 0.2);
+    FragColor = mix(lightColorOutput, vec4(fogColor, 0.1) * 0.1f, depth * 0.001f);
 }
