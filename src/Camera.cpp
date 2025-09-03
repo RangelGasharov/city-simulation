@@ -19,17 +19,17 @@ void Camera::Inputs(GLFWwindow *window, float deltaTime)
         currentSpeed = 1.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        Position += currentSpeed * Orientation * deltaTime;
+        Position += currentSpeed * Orientation;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        Position -= currentSpeed * Orientation * deltaTime;
+        Position -= currentSpeed * Orientation;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        Position -= glm::normalize(glm::cross(Orientation, Up)) * currentSpeed * deltaTime;
+        Position -= glm::normalize(glm::cross(Orientation, Up)) * currentSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        Position += glm::normalize(glm::cross(Orientation, Up)) * currentSpeed * deltaTime;
+        Position += glm::normalize(glm::cross(Orientation, Up)) * currentSpeed;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        Position += currentSpeed * Up * deltaTime;
+        Position += currentSpeed * Up;
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        Position -= currentSpeed * Up * deltaTime;
+        Position -= currentSpeed * Up;
 
     float rotationAmount = glm::radians(20.0f * deltaTime);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)

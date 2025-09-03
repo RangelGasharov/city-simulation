@@ -62,11 +62,16 @@ int main()
 
     glEnable(GL_FRAMEBUFFER_SRGB);
 
-    Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
+    Camera camera(width, height, glm::vec3(0.0f, 100.0f, 200.0f));
     glfwSetWindowUserPointer(window, &camera);
     glfwSetScrollCallback(window, Camera::ScrollCallback);
 
-    Terrain terrain(200, 200, 10.0f, 42);
+    unsigned int terrainWidth = 1000;
+    unsigned int terrainDepth = 1000;
+    float worldSize = (float)terrainWidth / 100;
+    float terrainHeight = 100.0f;
+    int seed = 123456789;
+    Terrain terrain(terrainWidth, terrainDepth, worldSize, terrainHeight, seed);
 
     double prevTime = 0.0;
     double crntTime = 0.0;

@@ -11,10 +11,10 @@ class Terrain
 public:
     Mesh *mesh;
 
-    Terrain(int width, int depth, float scale, unsigned int seed = 9186237);
+    Terrain(int width, int depth, float worldSize, float heightScale, unsigned int seed);
 
 private:
-    Mesh *generateTerrain(int width, int depth, float scal, unsigned int seed);
+    Mesh *generateTerrain(int width, int depth, float worldSize, float heightScale, unsigned int seed);
 };
 
 #endif

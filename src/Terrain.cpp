@@ -1,12 +1,12 @@
 #include "headers/Terrain.h"
 #include "headers/Perlin.h"
 
-Terrain::Terrain(int width, int depth, float scale, unsigned int seed)
+Terrain::Terrain(int width, int depth, float worldSize, float heightScale, unsigned int seed)
 {
-    mesh = generateTerrain(width, depth, scale, seed);
+    mesh = generateTerrain(width, depth, worldSize, heightScale, seed);
 }
 
-Mesh *Terrain::generateTerrain(int width, int depth, float scale, unsigned int seed)
+Mesh *Terrain::generateTerrain(int width, int depth, float worldSize, float heightScale, unsigned int seed)
 {
     std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
@@ -17,20 +17,26 @@ Mesh *Terrain::generateTerrain(int width, int depth, float scale, unsigned int s
     double persistence = 0.5;
     double lacunarity = 2.0;
 
+    float halfW = (float)width / 2.0f;
+    float halfD = (float)depth / 2.0f;
+    float maxDim = std::max(width, depth);
+
     for (int z = 0; z < depth; z++)
     {
         for (int x = 0; x < width; x++)
         {
-            float fx = (float)x / width * scale;
-            float fz = (float)z / depth * scale;
+            float fx = x / maxDim * worldSize;
+            float fz = z / maxDim * worldSize;
 
-            float height = (float)perlin.fractalNoise(fx, fz, octaves, persistence, lacunarity);
+            float n = (float)perlin.fractalNoise(fx, fz, octaves, persistence, lacunarity);
+
+            float height = n * heightScale;
 
             Vertex v{};
-            v.position = glm::vec3(x, height * 10.0f, z);
+            v.position = glm::vec3((float)x - halfW, height, (float)z - halfD);
             v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
             v.color = glm::vec3(0.1f, 0.4f, 0.1f);
-            v.texUV = glm::vec2(fx, fz);
+            v.texUV = glm::vec2((float)x / (float)(width - 1), (float)z / (float)(depth - 1));
 
             vertices.push_back(v);
         }
@@ -54,6 +60,27 @@ Mesh *Terrain::generateTerrain(int width, int depth, float scale, unsigned int s
             indices.push_back(bottomRight);
         }
     }
+
+    for (auto &v : vertices)
+        v.normal = glm::vec3(0.0f);
+
+    for (size_t i = 0; i + 2 < indices.size(); i += 3)
+    {
+        Vertex &v0 = vertices[indices[i + 0]];
+        Vertex &v1 = vertices[indices[i + 1]];
+        Vertex &v2 = vertices[indices[i + 2]];
+
+        glm::vec3 edge1 = v1.position - v0.position;
+        glm::vec3 edge2 = v2.position - v0.position;
+        glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
+
+        v0.normal += faceNormal;
+        v1.normal += faceNormal;
+        v2.normal += faceNormal;
+    }
+
+    for (auto &v : vertices)
+        v.normal = glm::normalize(v.normal);
 
     return new Mesh(vertices, indices, textures);
 }
