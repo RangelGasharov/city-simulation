@@ -62,7 +62,7 @@ vec4 direcLight()
 	float specular = specAmount * specularLight;
 	vec3 terrainColor = getTerrainColor(crntPos.y);
 
-    return (vec4(terrainColor, 1.0) * (diffuse + ambient) + specular) * lightColor;
+    return (vec4(color, 1.0) * (diffuse + ambient) + specular) * lightColor;
 }
 
 vec4 spotLight()

@@ -1,5 +1,6 @@
 #include "headers/Terrain.h"
 #include "headers/Perlin.h"
+#include "headers/BiomeManager.h"
 
 Terrain::Terrain(int width, int depth, float worldSize, float heightScale, unsigned int seed)
 {
@@ -12,6 +13,7 @@ Mesh *Terrain::generateTerrain(int width, int depth, float worldSize, float heig
     std::vector<GLuint> indices;
     std::vector<Texture> textures;
     Perlin perlin(seed);
+    BiomeManager biomeManager(seed + 1337);
 
     int octaves = 16;
     double persistence = 0.45;
@@ -25,17 +27,16 @@ Mesh *Terrain::generateTerrain(int width, int depth, float worldSize, float heig
     {
         for (int x = 0; x < width; x++)
         {
-            float fx = x / maxDim * worldSize;
-            float fz = z / maxDim * worldSize;
+            double fx = (double)x / maxDim * worldSize;
+            double fz = (double)z / maxDim * worldSize;
 
-            float n = (float)perlin.fractalNoise(fx, fz, octaves, persistence, lacunarity);
-
-            float height = n * heightScale;
+            Biome biome = biomeManager.getBiomeAt(x, z);
+            double height = biome.baseHeight + perlin.fractalNoise(fx, fz, 0.0, biome.octaves, biome.persistence, biome.lacunarity) * biome.heightScale;
 
             Vertex v{};
             v.position = glm::vec3((float)x - halfW, height, (float)z - halfD);
             v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
-            v.color = glm::vec3(0.1f, 0.4f, 0.1f);
+            v.color = biome.color;
             v.texUV = glm::vec2((float)x / (float)(width - 1), (float)z / (float)(depth - 1));
 
             vertices.push_back(v);
