@@ -13,8 +13,8 @@ Mesh *Terrain::generateTerrain(int width, int depth, float worldSize, float heig
     std::vector<Texture> textures;
     Perlin perlin(seed);
 
-    int octaves = 8;
-    double persistence = 0.5;
+    int octaves = 16;
+    double persistence = 0.45;
     double lacunarity = 2.0;
 
     float halfW = (float)width / 2.0f;

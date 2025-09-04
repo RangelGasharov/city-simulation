@@ -76,16 +76,53 @@ double Perlin::fractalNoise(double x, double y, double z, int octaves, double pe
     double total = 0.0;
     double frequency = 1.0;
     double amplitude = 1.0;
+    double maxValue = 1.0;
+
+    double epsilon = 0.001;
+    double gradientFactor = 0.001;
+
+    for (int i = 0; i < octaves; i++)
+    {
+        double n = noise(x * frequency, y * frequency, z * frequency);
+
+        double nx = (noise((x + epsilon) * frequency, y * frequency, z * frequency) -
+                     noise((x - epsilon) * frequency, y * frequency, z * frequency)) /
+                    (2.0 * epsilon);
+        double ny = (noise(x * frequency, (y + epsilon) * frequency, z * frequency) -
+                     noise(x * frequency, (y - epsilon) * frequency, z * frequency)) /
+                    (2.0 * epsilon);
+
+        double slope = std::sqrt(nx * nx + ny * ny);
+
+        double scaledNoise = n * std::exp(-slope * gradientFactor);
+
+        total += scaledNoise * amplitude;
+        maxValue += amplitude;
+
+        amplitude *= persistence;
+        frequency *= lacunarity;
+    }
+
+    return std::max(-1.0, std::min(1.0, total / maxValue));
+}
+
+double Perlin::ridgedNoise(double x, double y, double z, int octaves, double persistence, double lacunarity) const
+{
+    double total = 0.0;
+    double frequency = 1.0;
+    double amplitude = 0.5;
     double maxValue = 0.0;
 
     for (int i = 0; i < octaves; i++)
     {
-        total += noise(x * frequency, y * frequency, z * frequency) * amplitude;
+        double n = noise(x * frequency, y * frequency, z * frequency);
+        n = 1.0 - fabs(n);
+        total += n * amplitude;
 
         maxValue += amplitude;
         amplitude *= persistence;
         frequency *= lacunarity;
     }
 
-    return std::max(-1.0, std::min(1.0, total / maxValue));
+    return total / maxValue;
 }

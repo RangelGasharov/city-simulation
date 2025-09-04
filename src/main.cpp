@@ -69,7 +69,7 @@ int main()
     unsigned int terrainWidth = 1000;
     unsigned int terrainDepth = 1000;
     float worldSize = (float)terrainWidth / 100;
-    float terrainHeight = 100.0f;
+    float terrainHeight = 200.0f;
     int seed = 123456789;
     Terrain terrain(terrainWidth, terrainDepth, worldSize, terrainHeight, seed);
 
@@ -98,7 +98,7 @@ int main()
         {
             std::string FPS = std::to_string((1.0 / timeDiff) * counter);
             std::string ms = std::to_string((timeDiff / counter) * 1000);
-            std::string newTitle = "YoutubeOpenGL - " + FPS + "FPS / " + ms + "ms";
+            std::string newTitle = "City simulation - " + FPS + "FPS / " + ms + "ms";
             glfwSetWindowTitle(window, newTitle.c_str());
 
             prevTime = crntTime;
