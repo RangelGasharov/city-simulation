@@ -23,11 +23,13 @@ public:
         : temperatureNoise(seed),
           moistureNoise(seed + 1337)
     {
-        biomes.push_back(Biome("Plains", 10.0, 10.0, 4, 0.5, 2.0, 0.8, {0.0f, 1.0f, 0.0f}, 0.5, 0.5));
+        biomes.push_back(Biome("Plains", 10.0, 10.0, 4, 0.5, 2.0, 0.8, {0.0f, 1.0f, 0.0f}, 0.6, 0.6));
         biomes.push_back(Biome("Hills", 40.0, 50.0, 6, 0.5, 2.0, 1.0, {1.0f, 0.0f, 0.0f}, 0.3, 0.4));
         biomes.push_back(Biome("Mountains", 50.0, 200.0, 8, 0.45, 2.2, 1.2, {0.0f, 0.0f, 1.0f}, 0.1, 0.2));
-        biomes.push_back(Biome("Desert", 20.0, 5.0, 4, 0.5, 2.0, 0.8, {1.0f, 0.9f, 0.2f}, 0.9, 0.1));
-        biomes.push_back(Biome("Taiga", 40.0, 50.0, 6, 0.5, 2.0, 1.0, {0.0f, 0.5f, 0.0f}, 0.2, 0.7));
+        biomes.push_back(Biome("Desert", 10.0, 5.0, 4, 0.5, 2.0, 0.8, {1.0f, 0.9f, 0.2f}, 0.8, 0.1));
+        biomes.push_back(Biome("Savanna", 20.0, 20.0, 6, 0.5, 2.0, 1.0, {0.74f, 0.51f, 0.27f}, 0.7, 0.3));
+        biomes.push_back(Biome("Taiga", 10.0, 20.0, 6, 0.5, 2.0, 1.0, {0.0f, 0.5f, 0.0f}, 0.2, 0.7));
+        biomes.push_back(Biome("Tundra", 10.0, 20.0, 6, 0.5, 2.0, 1.0, {0.9f, 0.9f, 0.9f}, 0.2, 0.3));
     }
 
     glm::dvec2 getClimate(double x, double z)
@@ -56,7 +58,7 @@ public:
         return Biome::blendMultiple(candidates);
     }
 
-    void exportClimateMap(const std::string &filename, int width, int height)
+    void exportWorldBiomeMap(const std::string &filename, int width, int height, double worldSizeX, double worldSizeZ)
     {
         std::ofstream file(filename, std::ios::binary);
         file << "P6\n"
@@ -64,10 +66,14 @@ public:
 
         for (int y = 0; y < height; y++)
         {
-            double moist = (double)y / (height - 1);
+            double worldZ = (double)y / (height - 1) * worldSizeZ;
+
             for (int x = 0; x < width; x++)
             {
-                double temp = (double)x / (width - 1);
+                double worldX = (double)x / (width - 1) * worldSizeX;
+
+                double temp = (temperatureNoise.noise(worldX * 0.0005, worldZ * 0.0005, 0.0) + 1.0) * 0.5;
+                double moist = (moistureNoise.noise(worldX * 0.0005, worldZ * 0.0005, 0.0) + 1.0) * 0.5;
 
                 std::vector<std::pair<const Biome *, double>> candidates;
                 for (auto &biome : biomes)

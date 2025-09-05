@@ -23,6 +23,8 @@ Mesh *Terrain::generateTerrain(int width, int depth, float worldSize, float heig
     float halfD = (float)depth / 2.0f;
     float maxDim = std::max(width, depth);
 
+    biomeManager.exportWorldBiomeMap("terrain-biomes.ppm", 2048, 2048, 20000, 20000);
+
     for (int z = 0; z < depth; z++)
     {
         for (int x = 0; x < width; x++)
