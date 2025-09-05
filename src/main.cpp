@@ -68,7 +68,7 @@ int main()
 
     unsigned int terrainWidth = 1000;
     unsigned int terrainDepth = 1000;
-    float worldSize = (float)terrainWidth / 100;
+    float worldSize = std::max((float)terrainWidth / 100, (float)terrainDepth / 100);
     float terrainHeight = 200.0f;
     int seed = 123456789;
     Terrain terrain(terrainWidth, terrainDepth, worldSize, terrainHeight, seed);
