@@ -2,6 +2,7 @@
 #include "Biome.h"
 #include "Perlin.h"
 #include <vector>
+#include <fstream>
 
 class BiomeManager
 {
@@ -53,5 +54,41 @@ public:
         }
 
         return Biome::blendMultiple(candidates);
+    }
+
+    void exportClimateMap(const std::string &filename, int width, int height)
+    {
+        std::ofstream file(filename, std::ios::binary);
+        file << "P6\n"
+             << width << " " << height << "\n255\n";
+
+        for (int y = 0; y < height; y++)
+        {
+            double moist = (double)y / (height - 1);
+            for (int x = 0; x < width; x++)
+            {
+                double temp = (double)x / (width - 1);
+
+                std::vector<std::pair<const Biome *, double>> candidates;
+                for (auto &biome : biomes)
+                {
+                    double dx = temp - biome.temperature;
+                    double dy = moist - biome.moisture;
+                    double dist2 = dx * dx + dy * dy;
+                    double w = 1.0 / (0.0001 + dist2);
+                    candidates.push_back({&biome, w});
+                }
+
+                Biome result = Biome::blendMultiple(candidates);
+                glm::vec3 col = glm::clamp(result.color, 0.0f, 1.0f);
+
+                unsigned char r = (unsigned char)(col.r * 255);
+                unsigned char g = (unsigned char)(col.g * 255);
+                unsigned char b = (unsigned char)(col.b * 255);
+                file << r << g << b;
+            }
+        }
+
+        file.close();
     }
 };
