@@ -2,9 +2,49 @@
 #include "headers/Perlin.h"
 #include "headers/BiomeManager.h"
 
-Terrain::Terrain(int width, int depth, float worldSize, float heightScale, unsigned int seed)
+Terrain::Terrain(int width, int depth, float worldSize, float heightScale, unsigned int seed) : perlin(seed), biomeManager(seed + 1337)
 {
     mesh = generateTerrain(width, depth, worldSize, heightScale, seed);
+}
+
+double Terrain::getHeight(double fx, double fz)
+{
+    BiomeManager::ClimatePoint climate = biomeManager.getClimate(fx, fz);
+    Biome biome = biomeManager.getBiomeAt(fx, fz);
+
+    double elevation = biome.baseHeight + perlin.fractalNoise(fx, fz, 0.0, biome.octaves, biome.persistence, biome.lacunarity) * biome.heightScale;
+
+    if (climate.continentalness < -0.5)
+    {
+        elevation = -20.0 + climate.continentalness * 50.0;
+    }
+    else if (climate.continentalness > 0.6)
+    {
+        elevation *= 1.5 + biome.roughness;
+        elevation = std::max(elevation, 120.0);
+    }
+
+    double riverNoise = fabs(perlin.noise(fx * 0.0005, fz * 0.0005, 0.0));
+    if (riverNoise < 0.02)
+    {
+        double riverDepth = (0.02 - riverNoise) * 200.0;
+        elevation -= riverDepth;
+        if (elevation < 0.0)
+            elevation = -5.0;
+    }
+
+    if (elevation > 50.0)
+    {
+        double detail = perlin.noise(fx * 0.01, fz * 0.01, 0.0);
+        elevation += detail * (biome.roughness * 20.0);
+    }
+
+    if (elevation < 2.0 && climate.continentalness > -0.2)
+    {
+        elevation = -2.0;
+    }
+
+    return elevation;
 }
 
 Mesh *Terrain::generateTerrain(int width, int depth, float worldSize, float heightScale, unsigned int seed)

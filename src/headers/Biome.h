@@ -7,35 +7,43 @@
 struct Biome
 {
   std::string name;
+  glm::vec3 color;
+
   double baseHeight;
   double heightScale;
   int octaves;
   double persistence;
   double lacunarity;
   double roughness;
-  glm::vec3 color;
+
   double temperature;
   double moisture;
-  double minHeight;
-  double maxHeight;
+  double continentalness;
+  double erosion;
+  double weirdness;
 
   Biome(std::string name,
+        glm::vec3 color,
+
         double baseHeight,
         double heightScale,
         int octaves,
         double persistence,
         double lacunarity,
         double roughness,
-        glm::vec3 color,
+
         double temperature,
         double moisture,
-        double minHeight = 0.0,
-        double maxHeight = 1.0)
+        double continentalness,
+        double erosion,
+        double weirdness)
       : name(name), baseHeight(baseHeight), heightScale(heightScale), octaves(octaves),
         persistence(persistence), lacunarity(lacunarity),
         roughness(roughness), color(color),
         temperature(temperature), moisture(moisture),
-        minHeight(minHeight), maxHeight(maxHeight) {}
+        continentalness(continentalness), erosion(erosion), weirdness(weirdness)
+  {
+  }
 
   static Biome blend(const Biome &a, const Biome &b, double t)
   {
@@ -52,17 +60,18 @@ struct Biome
 
     return Biome(
         "Blend(" + a.name + "," + b.name + ")",
+        glm::mix(a.color, b.color, static_cast<float>(transition)),
         lerp(a.baseHeight, b.baseHeight),
         lerp(a.heightScale, b.heightScale),
         static_cast<int>(std::round(lerp(a.octaves, b.octaves))),
         lerp(a.persistence, b.persistence),
         lerp(a.lacunarity, b.lacunarity),
         lerp(a.roughness, b.roughness),
-        glm::mix(a.color, b.color, static_cast<float>(transition)),
         lerp(a.temperature, b.temperature),
         lerp(a.moisture, b.moisture),
-        lerp(a.minHeight, b.minHeight),
-        lerp(a.maxHeight, b.maxHeight));
+        lerp(a.continentalness, b.continentalness),
+        lerp(a.erosion, b.erosion),
+        lerp(a.weirdness, b.weirdness));
   }
 
   static Biome blendMultiple(const std::vector<std::pair<const Biome *, double>> &inputs)
@@ -82,6 +91,7 @@ struct Biome
     double baseHeight = 0, heightScale = 0, octaves = 0;
     double persistence = 0, lacunarity = 0, roughness = 0;
     double temperature = 0, moisture = 0, minHeight = 0, maxHeight = 0;
+    double continentalness = 0, erosion = 0, weirdness = 0;
     glm::vec3 color(0);
 
     for (auto &in : inputs)
@@ -97,23 +107,25 @@ struct Biome
       roughness += b->roughness * w;
       temperature += b->temperature * w;
       moisture += b->moisture * w;
-      minHeight += b->minHeight * w;
-      maxHeight += b->maxHeight * w;
+      continentalness += b->continentalness * w;
+      erosion += b->erosion * w;
+      weirdness += b->weirdness * w;
       color += b->color * static_cast<float>(w);
     }
 
     return Biome(
         "BlendedBiome",
+        color,
         baseHeight,
         heightScale,
         static_cast<int>(std::round(octaves)),
         persistence,
         lacunarity,
         roughness,
-        color,
         temperature,
         moisture,
-        minHeight,
-        maxHeight);
+        continentalness,
+        erosion,
+        weirdness);
   }
 };
