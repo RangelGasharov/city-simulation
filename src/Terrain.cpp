@@ -24,6 +24,16 @@ double Terrain::getHeight(double fx, double fz)
         elevation = std::max(elevation, 120.0);
     }
 
+    double ridged = 1.0 - fabs(perlin.noise(fx * 0.00015, fz * 0.00015, 0.0));
+    if (ridged > 0.98)
+    {
+        double depth = (ridged - 0.97) * 300.0;
+        elevation -= depth;
+
+        if (elevation < 0.0)
+            elevation = -5.0;
+    }
+
     double riverNoise = fabs(perlin.noise(fx * 0.0005, fz * 0.0005, 0.0));
     if (riverNoise < 0.02)
     {
@@ -35,7 +45,7 @@ double Terrain::getHeight(double fx, double fz)
 
     if (elevation > 50.0)
     {
-        double detail = perlin.noise(fx * 0.01, fz * 0.01, 0.0);
+        double detail = perlin.noise(fx * 0.01, fz * 0.01, 2000.0);
         elevation += detail * (biome.roughness * 20.0);
     }
 
