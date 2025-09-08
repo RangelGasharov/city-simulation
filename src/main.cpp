@@ -66,8 +66,8 @@ int main()
     glfwSetWindowUserPointer(window, &camera);
     glfwSetScrollCallback(window, Camera::ScrollCallback);
 
-    unsigned int terrainWidth = 3000;
-    unsigned int terrainDepth = 3000;
+    unsigned int terrainWidth = 2000;
+    unsigned int terrainDepth = 2000;
     float worldSize = std::max((float)terrainWidth / 100, (float)terrainDepth / 100);
     float terrainHeight = 200.0f;
     int seed = 123456789;

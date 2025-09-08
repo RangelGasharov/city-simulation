@@ -68,10 +68,9 @@ public:
         biomes.push_back(Biome("Deep Ocean", {0.0f, 0.0f, 0.4f},
                                -50.0, 5.0, 4, 0.5, 2.0, 0.7,
                                0.5, 0.5, -1.0, 0.7, 0.4));
-        biomes.push_back(Biome("River", {0.2f, 0.4f, 0.8f},
-                               -2.0, 5.0, 4, 0.5, 2.0, 0.5,
-                               0.7, 0.6, -0.5, 0.5, 0.5));
     }
+
+    Biome river = Biome("River", {0.2f, 0.4f, 0.8f}, -2.0, 5.0, 4, 0.5, 2.0, 0.5, 0.7, 0.6, -0.5, 0.5, 0.5);
 
     struct ClimatePoint
     {
@@ -88,17 +87,16 @@ public:
         { return (v + 1.0) * 0.5; };
 
         return {
-            remap(tempNoise.noise(x * 0.0004, z * 0.0004, 0.0)),
-            remap(moistNoise.noise(x * 0.0008, z * 0.0008, 0.0)),
-            remap(contNoise.noise(x * 0.0004, z * 0.0004, 0.0)) * 2.0 - 1,
-            remap(erosionNoise.noise(x * 0.0006, z * 0.0006, 0.0)),
-            remap(weirdNoise.noise(x * 0.0009, z * 0.0009, 0.0))};
+            remap(tempNoise.noise(x * 0.00015, z * 0.00015, 0.0)),
+            remap(moistNoise.noise(x * 0.00025, z * 0.00025, 0.0)),
+            remap(contNoise.noise(x * 0.00015, z * 0.00015, 0.0)) * 2.0 - 1,
+            remap(erosionNoise.noise(x * 0.00015, z * 0.00015, 0.0)),
+            remap(weirdNoise.noise(x * 0.00025, z * 0.00025, 0.0))};
     }
 
     Biome getBiomeAt(double x, double z)
     {
         ClimatePoint climate = getClimate(x, z);
-        double river = fabs(contNoise.noise(x * 0.001, z * 0.001, 0.0));
         std::vector<std::pair<const Biome *, double>> candidates;
         for (auto &biome : biomes)
         {
@@ -115,23 +113,20 @@ public:
             candidates.push_back({&biome, w});
         }
 
-        auto it = std::find_if(biomes.begin(), biomes.end(), [](const Biome &b)
-                               { return b.name == "River"; });
+        double riverNoise = fabs(contNoise.noise(x * 0.001, z * 0.001, 0.0));
+        double riverWeight = std::clamp(1.0 - (riverNoise / 0.01), 0.0, 1.0);
+        riverWeight = pow(riverWeight, 4.0);
 
-        if (it != biomes.end())
+        if (riverWeight > 0.0)
         {
-            double riverWeight = std::clamp(1.0 - (river / 0.030), 0.0, 1.0);
-            riverWeight = pow(riverWeight, 4.0);
-
-            if (riverWeight > 0.0)
-            {
-                candidates.push_back({&(*it), riverWeight * 500.0});
-            }
+            candidates.push_back({&river, riverWeight * 300.0});
         }
+
         return Biome::blendMultiple(candidates);
     }
 
-    void exportWorldBiomeMap(const std::string &filename, int width, int height, double worldSizeX, double worldSizeZ)
+    void exportWorldBiomeMap(const std::string &filename, int width, int height,
+                             double worldSizeX, double worldSizeZ)
     {
         std::ofstream file(filename, std::ios::binary);
         file << "P6\n"
@@ -148,10 +143,13 @@ public:
                 Biome result = getBiomeAt(worldX, worldZ);
 
                 glm::vec3 col = glm::clamp(result.color, 0.0f, 1.0f);
-                unsigned char r = (unsigned char)(col.r * 255);
-                unsigned char g = (unsigned char)(col.g * 255);
-                unsigned char b = (unsigned char)(col.b * 255);
-                file << r << g << b;
+                unsigned char r = static_cast<unsigned char>(col.r * 255);
+                unsigned char g = static_cast<unsigned char>(col.g * 255);
+                unsigned char b = static_cast<unsigned char>(col.b * 255);
+
+                file.write(reinterpret_cast<char *>(&r), 1);
+                file.write(reinterpret_cast<char *>(&g), 1);
+                file.write(reinterpret_cast<char *>(&b), 1);
             }
         }
         file.close();
