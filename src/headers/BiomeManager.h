@@ -90,7 +90,7 @@ public:
             remap(tempNoise.noise(x * 0.00015, z * 0.00015, 0.0)),
             remap(moistNoise.noise(x * 0.00025, z * 0.00025, 0.0)),
             remap(contNoise.noise(x * 0.00015, z * 0.00015, 0.0)) * 2.0 - 1,
-            remap(erosionNoise.noise(x * 0.00015, z * 0.00015, 0.0)),
+            remap(erosionNoise.noise(x * 0.0005, z * 0.0005, 0.0)),
             remap(weirdNoise.noise(x * 0.00025, z * 0.00025, 0.0))};
     }
 
