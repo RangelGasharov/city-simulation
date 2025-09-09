@@ -1,1 +1,2 @@
-include/** linguist-vendored=true
+include/* linguist-vendored=true
+include/**/* linguist-vendored=true
