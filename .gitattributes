@@ -1,2 +1,7 @@
-include/* linguist-vendored=true
-include/**/* linguist-vendored=true
+include/** linguist-vendored=true
+*.h linguist-language=C++
+
+docs/** linguist-documentation=true
+*.md linguist-documentation=true
+*.rst linguist-documentation=true
+*.txt linguist-documentation=true
