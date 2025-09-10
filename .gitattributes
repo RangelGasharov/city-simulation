@@ -1,4 +1,8 @@
 include/** linguist-vendored=true
+include/GLFW/** linguist-vendored=true
+include/glm/** linguist-vendored=true
+include/KHR/** linguist-vendored=true
+include/glad/** linguist-vendored=true
 *.h linguist-language=C++
 
 docs/** linguist-documentation=true
