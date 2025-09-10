@@ -3,7 +3,10 @@ include/GLFW/** linguist-vendored=true
 include/glm/** linguist-vendored=true
 include/KHR/** linguist-vendored=true
 include/glad/** linguist-vendored=true
-*.h linguist-language=C++
+include/**/*.h linguist-vendored=true
+include/**/*.hpp linguist-vendored=true
+include/**/*.inl linguist-vendored=true
+src/glad.c linguist-vendored=true
 
 docs/** linguist-documentation=true
 *.md linguist-documentation=true
