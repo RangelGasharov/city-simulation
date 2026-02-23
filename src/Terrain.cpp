@@ -65,15 +65,11 @@ Mesh *Terrain::generateTerrain(int width, int depth, float worldSize, float heig
     Perlin perlin(seed);
     BiomeManager biomeManager(seed + 1337);
 
-    int octaves = 16;
-    double persistence = 0.45;
-    double lacunarity = 2.0;
-
     float halfW = (float)width / 2.0f;
     float halfD = (float)depth / 2.0f;
     float maxDim = std::max(width, depth);
 
-    biomeManager.exportWorldBiomeMap("terrain-biomes.ppm", 2048, 2048, 20000, 20000);
+    biomeManager.exportWorldBiomeMap(2048, 2048, 20000, 20000);
 
     for (int z = 0; z < depth; z++)
     {

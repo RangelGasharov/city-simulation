@@ -94,6 +94,8 @@ struct Biome
     double continentalness = 0, erosion = 0, weirdness = 0;
     glm::vec3 color(0);
 
+    std::string name = "BlendedBiome_";
+
     for (auto &in : inputs)
     {
       double w = safeDiv(in.second, totalW);
@@ -111,10 +113,12 @@ struct Biome
       erosion += b->erosion * w;
       weirdness += b->weirdness * w;
       color += b->color * static_cast<float>(w);
+
+      name += b->name;
     }
 
     return Biome(
-        "BlendedBiome",
+        name,
         color,
         baseHeight,
         heightScale,
