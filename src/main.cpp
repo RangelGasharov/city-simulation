@@ -66,9 +66,9 @@ int main()
     glfwSetWindowUserPointer(window, &camera);
     glfwSetScrollCallback(window, Camera::ScrollCallback);
 
-    unsigned int terrainWidth = 2000;
-    unsigned int terrainDepth = 2000;
-    float worldSize = std::max((float)terrainWidth / 100, (float)terrainDepth / 100);
+    unsigned int terrainWidth = 1000;
+    unsigned int terrainDepth = 1000;
+    float worldSize = std::max((float)terrainWidth, (float)terrainDepth);
     float terrainHeight = 200.0f;
     int seed = 123456789;
     Terrain terrain(terrainWidth, terrainDepth, worldSize, terrainHeight, seed);
@@ -106,7 +106,8 @@ int main()
         }
 
         camera.updateMatrix(camera.FOV, 0.1f, 10000.0f);
-        terrain.mesh->Draw(shaderProgram, camera);
+        terrain.update();
+        terrain.Draw(shaderProgram, camera);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

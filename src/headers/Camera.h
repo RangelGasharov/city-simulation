@@ -10,6 +10,7 @@
 #include <glm/gtx/vector_angle.hpp>
 
 #include "shaderClass.h"
+#include "TerrainChunk.h"
 
 class Camera
 {
@@ -36,5 +37,6 @@ public:
     static void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
     void updateOrientationFromAngles();
     void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
+    bool isInFrustum(TerrainChunk *chunk);
 };
 #endif

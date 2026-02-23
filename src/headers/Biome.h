@@ -3,6 +3,7 @@
 #include "../include/glm/glm.hpp"
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 
 struct Biome
 {

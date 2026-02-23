@@ -1,4 +1,5 @@
 #include "headers/Camera.h"
+#include "headers/TerrainChunk.h"
 
 Camera::Camera(int width, int height, glm::vec3 position)
 {
@@ -103,4 +104,19 @@ void Camera::ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
         cam->FOV = 10.0f;
     if (cam->FOV > 120.0f)
         cam->FOV = 120.0f;
+}
+
+bool Camera::isInFrustum(TerrainChunk *chunk)
+{
+    float renderDistance = 1500.0f;
+    float dist = glm::distance(this->Position, chunk->worldPos + glm::vec3(chunk->size / 2, 0, chunk->size / 2));
+
+    if (dist > renderDistance)
+        return false;
+
+    glm::vec3 toChunk = glm::normalize((chunk->worldPos + glm::vec3(chunk->size / 2, 0, chunk->size / 2)) - this->Position);
+
+    float dot = glm::dot(this->Orientation, toChunk);
+
+    return dot > -0.2f;
 }
