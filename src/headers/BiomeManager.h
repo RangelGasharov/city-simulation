@@ -29,46 +29,27 @@ public:
           erosionNoise(seed + 303),
           weirdNoise(seed + 404)
     {
-        biomes.push_back(Biome("Plains", {0.4f, 0.8f, 0.2f},
-                               10.0, 10.0, 6, 0.5, 2.0, 1.0,
-                               0.6, 0.6, 0.0, 0.5, 0.3));
-        /*biomes.push_back(Biome("Hills", {0.6f, 0.4f, 0.2f},
-                               40.0, 150.0, 16, 0.5, 2.6, 1.0,
-                               0.4, 0.7, 0.2, 0.7, 0.4));
-        biomes.push_back(Biome("Mountains", {0.5f, 0.5f, 0.6f},
-                               60.0, 300.0, 16, 0.45, 2.6, 1.2,
-                               0.2, 0.3, 0.8, 0.2, 0.8));*/
-        /*biomes.push_back(Biome("Desert", {0.9f, 0.85f, 0.3f},
-                               10.0, 5.0, 4, 0.5, 2.0, 0.8,
-                               0.95, 0.05, 0.0, 0.1, 0.4));
-        biomes.push_back(Biome("Savanna", {0.74f, 0.51f, 0.27f},
-                               20.0, 20.0, 6, 0.5, 2.0, 1.0,
-                               0.85, 0.4, 0.2, 0.3, 0.5));
-        biomes.push_back(Biome("Taiga", {0.1f, 0.3f, 0.1f},
-                               15.0, 30.0, 6, 0.5, 2.0, 1.0,
-                               0.25, 0.65, 0.3, 0.5, 0.2));
-        biomes.push_back(Biome("Tundra", {0.8f, 0.8f, 0.85f},
-                               5.0, 15.0, 6, 0.5, 2.0, 1.0,
-                               0.1, 0.2, 0.1, 0.2, 0.3));
-        biomes.push_back(Biome("Swamp", {0.1f, 0.2f, 0.05f},
-                               8.0, 8.0, 4, 0.6, 2.0, 0.9,
-                               0.7, 0.9, 0.0, 0.8, 0.3));
-        biomes.push_back(Biome("Jungle", {0.0f, 0.6f, 0.0f},
-                               20.0, 60.0, 6, 0.6, 2.1, 1.0,
-                               0.95, 0.95, 0.2, 0.9, 0.7));
-        biomes.push_back(Biome("Snowy Mountains", {0.9f, 0.9f, 1.0f},
-                               70.0, 220.0, 16, 0.45, 2.2, 1.3,
-                               0.05, 0.3, 0.9, 0.3, 0.9));
-        biomes.push_back(Biome("Mesa", {0.8f, 0.4f, 0.2f},
-                               20.0, 40.0, 6, 0.5, 2.0, 1.0,
-                               0.9, 0.2, 0.4, 0.4, 0.9));
-        biomes.push_back(Biome("Ocean", {0.0f, 0.0f, 0.7f},
-                               -20.0, 5.0, 4, 0.5, 2.0, 0.7,
-                               0.5, 0.5, -0.9, 0.6, 0.2));
-        biomes.push_back(Biome("Deep Ocean", {0.0f, 0.0f, 0.4f},
-                               -50.0, 5.0, 6, 0.5, 2.0, 0.7,
-                               0.5, 0.5, -1.0, 0.7, 0.4));*/
-        // biomes.push_back(Biome("River", {0.2f, 0.4f, 0.8f}, -1.0, 5.0, 4, 0.5, 2.0, 0.5, 0.7, 0.6, -0.5, 0.5, 0.5));
+        biomes.push_back(Biome("Deep Ocean", {0.0f, 0.05f, 0.3f},
+                               -60.0, 5.0, 4, 0.5, 2.0, 0.5, 0.5, 0.5, -0.8, 0.5, 0.2));
+        biomes.push_back(Biome("Ocean", {0.0f, 0.2f, 0.6f},
+                               -25.0, 8.0, 4, 0.5, 2.0, 0.6, 0.5, 0.6, -0.5, 0.4, 0.3));
+        biomes.push_back(Biome("Beach", {0.9f, 0.8f, 0.5f},
+                               1.0, 2.0, 3, 0.5, 2.0, 0.4, 0.7, 0.4, -0.1, 0.8, 0.2));
+        biomes.push_back(Biome("Plains", {0.4f, 0.7f, 0.2f},
+                               10.0, 15.0, 6, 0.5, 2.0, 0.8, 0.6, 0.5, 0.1, 0.4, 0.3));
+        biomes.push_back(Biome("Jungle", {0.0f, 0.4f, 0.0f},
+                               15.0, 40.0, 8, 0.6, 2.1, 1.1, 0.9, 0.9, 0.2, 0.7, 0.5));
+        biomes.push_back(Biome("Forest", {0.1f, 0.5f, 0.1f},
+                               12.0, 25.0, 6, 0.5, 2.0, 1.0, 0.5, 0.7, 0.2, 0.5, 0.4));
+        biomes.push_back(Biome("Desert", {0.9f, 0.8f, 0.4f},
+                               8.0, 10.0, 4, 0.5, 2.0, 0.7, 0.9, 0.1, 0.3, 0.2, 0.5));
+        biomes.push_back(Biome("Tundra", {0.7f, 0.8f, 0.8f},
+                               5.0, 10.0, 5, 0.5, 2.0, 0.9, 0.1, 0.3, 0.3, 0.5, 0.3));
+        biomes.push_back(Biome("Mountains", {0.5f, 0.5f, 0.55f},
+                               60.0, 180.0, 12, 0.5, 2.4, 1.3, 0.3, 0.4, 0.7, 0.3, 0.8));
+
+        biomes.push_back(Biome("Snowy Peaks", {1.0f, 1.0f, 1.0f},
+                               100.0, 250.0, 14, 0.55, 2.5, 1.5, 0.0, 0.4, 0.8, 0.2, 0.9));
     }
 
     // Biome river = Biome("River", {0.2f, 0.4f, 0.8f}, -1.0, 5.0, 4, 0.5, 2.0, 0.5, 0.7, 0.6, -0.5, 0.5, 0.5);
@@ -86,13 +67,56 @@ public:
     {
         auto remap = [](double v)
         { return (v + 1.0) * 0.5; };
-        double spreadingFactor = 0.0002;
+
+        double warpScale = 0.00005;
+        double qx = contNoise.noise(x * warpScale, z * warpScale, 0.0) * 800.0;
+        double qz = contNoise.noise(x * warpScale + 5.2, z * warpScale + 1.3, 0.0) * 800.0;
+
+        double wx = x + qx;
+        double wz = z + qz;
+
+        auto fbm = [&](double nx, double nz, int octaves, double persistence)
+        {
+            double total = 0;
+            double frequency = 0.00002;
+            double amplitude = 1.0;
+            double maxValue = 0;
+            for (int i = 0; i < octaves; i++)
+            {
+                total += contNoise.noise(nx * frequency, nz * frequency, 0.0) * amplitude;
+                maxValue += amplitude;
+                amplitude *= persistence;
+                frequency *= 2.0;
+            }
+            return total / maxValue;
+        };
+
+        double contRaw = fbm(wx, wz, 6, 0.5);
+
+        double ridge = 1.0 - std::abs(contRaw);
+        ridge = ridge * ridge;
+
+        double finalContRaw = (contRaw * 0.8) + (ridge * 0.2);
+
+        double waterThreshold = 0.25;
+        double adjustedCont = finalContRaw - waterThreshold;
+
+        double cont;
+        if (adjustedCont < 0.0)
+        {
+            cont = -std::pow(std::abs(adjustedCont), 0.6) * 3.0;
+        }
+        else
+        {
+            cont = std::pow(adjustedCont, 0.5) * 2.0;
+        }
+
         return {
-            remap(tempNoise.noise(x * spreadingFactor, z * spreadingFactor, 0.0)),
-            remap(moistNoise.noise(x * spreadingFactor, z * spreadingFactor, 0.0)),
-            remap(contNoise.noise(x * spreadingFactor, z * spreadingFactor, 0.0)) * 2.0 - 1,
-            remap(erosionNoise.noise(x * spreadingFactor, z * spreadingFactor, 0.0)),
-            remap(weirdNoise.noise(x * spreadingFactor, z * spreadingFactor, 0.0))};
+            remap(tempNoise.noise(wx * 0.0001, wz * 0.0001, 0.0)),
+            remap(moistNoise.noise(wx * 0.0001, wz * 0.0001, 10.0)),
+            cont,
+            remap(erosionNoise.noise(wx * 0.00005, wz * 0.00005, 20.0)),
+            remap(weirdNoise.noise(wx * 0.0001, wz * 0.0001, 30.0))};
     }
 
     Biome getBiomeAt(double x, double z)
@@ -103,25 +127,16 @@ public:
         {
             double dx = climate.temperature - biome.temperature;
             double dy = climate.moisture - biome.moisture;
-            double dz = climate.continentalness - biome.continentalness;
+            double dz = (climate.continentalness - biome.continentalness) * 1.5;
             double de = climate.erosion - biome.erosion;
             double dw = climate.weirdness - biome.weirdness;
             double dist2 = dx * dx + dy * dy + dz * dz + de * de + dw * dw;
 
             double w = 1.0 / (0.0001 + dist2);
-            w = pow(w, 2.0);
+            w = pow(w, 4.0);
 
             candidates.push_back({&biome, w});
         }
-
-        /*double riverNoise = fabs(contNoise.noise(x * 0.001, z * 0.001, 0.0));
-        double riverWeight = std::clamp(1.0 - (riverNoise / 0.01), 0.0, 1.0);
-        riverWeight = pow(riverWeight, 4.0);
-
-        if (riverWeight > 0.0)
-        {
-            candidates.push_back({&river, riverWeight * 300.0});
-        }*/
 
         return Biome::blendMultiple(candidates);
     }

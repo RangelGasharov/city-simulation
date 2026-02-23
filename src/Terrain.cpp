@@ -7,7 +7,7 @@
 
 Terrain::Terrain(int width, int depth, float worldSize, float heightScale, unsigned int seed) : perlin(seed), biomeManager(seed + 1337)
 {
-    int chunkSize = 64;
+    int chunkSize = 32;
     float maxDim = std::max(width, depth);
     this->worldScale = worldSize / maxDim;
 
@@ -27,20 +27,46 @@ double Terrain::getHeight(double fx, double fz)
     BiomeManager::ClimatePoint climate = biomeManager.getClimate(fx, fz);
     Biome biome = biomeManager.getBiomeAt(fx, fz);
 
-    float factor = 0.01;
-    double elevation = biome.baseHeight + perlin.fractalNoise(fx * factor, fz * factor, 0.0, biome.octaves, biome.persistence, biome.lacunarity) * biome.heightScale;
-
-    if (climate.continentalness < -0.5)
+    double baseElevation = 0.0;
+    if (climate.continentalness < 0.0)
     {
-        elevation = -20.0 + climate.continentalness * 50.0;
+        baseElevation = biome.baseHeight + (climate.continentalness * 40.0);
     }
-    else if (climate.continentalness > 0.6)
+    else
     {
-        elevation *= 1.5 + biome.roughness;
-        elevation = std::max(elevation, 120.0);
+        baseElevation = biome.baseHeight + (climate.continentalness * 20.0);
     }
 
-    return elevation;
+    float freq = 0.005f;
+
+    double noiseValue = perlin.fractalNoise(
+        fx * freq,
+        fz * freq,
+        0.0,
+        biome.octaves,
+        biome.persistence,
+        biome.lacunarity);
+
+    double detail = noiseValue * biome.heightScale;
+
+    double erosionFactor = 1.0 - (climate.erosion * 0.5);
+    detail *= erosionFactor;
+
+    double finalHeight = baseElevation + detail;
+
+    if (climate.continentalness < -0.2)
+    {
+        if (finalHeight > -2.0)
+            finalHeight = glm::mix(finalHeight, -2.0, 0.5);
+    }
+
+    if (climate.continentalness > 0.4 && climate.weirdness > 0.5)
+    {
+        double steepness = (climate.weirdness - 0.5) * 2.0;
+        finalHeight += std::max(0.0, noiseValue) * biome.heightScale * steepness;
+    }
+
+    return finalHeight;
 }
 
 void Terrain::update()
