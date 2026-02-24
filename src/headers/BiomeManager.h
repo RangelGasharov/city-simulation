@@ -16,7 +16,7 @@ private:
     {
         double t = (value - inMin) / (inMax - inMin);
         t = std::clamp(t, 0.0, 1.0);
-        return t * t * (3 - 2 * t);
+        return t * t * (3.0 - 2.0 * t);
     }
 
 public:
@@ -68,9 +68,9 @@ public:
         auto remap = [](double v)
         { return (v + 1.0) * 0.5; };
 
-        double warpScale = 0.00005;
-        double qx = contNoise.noise(x * warpScale, z * warpScale, 0.0) * 800.0;
-        double qz = contNoise.noise(x * warpScale + 5.2, z * warpScale + 1.3, 0.0) * 800.0;
+        double globalScale = 0.00001;
+        double qx = contNoise.noise(x * globalScale, z * globalScale, 0.0) * 2000.0;
+        double qz = contNoise.noise(x * globalScale + 5.2, z * globalScale + 1.3, 0.0) * 2000.0;
 
         double wx = x + qx;
         double wz = z + qz;
@@ -78,7 +78,7 @@ public:
         auto fbm = [&](double nx, double nz, int octaves, double persistence)
         {
             double total = 0;
-            double frequency = 0.00002;
+            double frequency = 0.000004;
             double amplitude = 1.0;
             double maxValue = 0;
             for (int i = 0; i < octaves; i++)
@@ -92,31 +92,45 @@ public:
         };
 
         double contRaw = fbm(wx, wz, 6, 0.5);
-
         double ridge = 1.0 - std::abs(contRaw);
-        ridge = ridge * ridge;
-
         double finalContRaw = (contRaw * 0.8) + (ridge * 0.2);
 
         double waterThreshold = 0.25;
         double adjustedCont = finalContRaw - waterThreshold;
 
         double cont;
-        if (adjustedCont < 0.0)
+        const double eps = 0.005;
+
+        if (adjustedCont < -eps)
         {
-            cont = -std::pow(std::abs(adjustedCont), 0.6) * 3.0;
+            cont = -std::pow(-adjustedCont, 0.6) * 3.0;
         }
-        else
+        else if (adjustedCont > eps)
         {
             cont = std::pow(adjustedCont, 0.5) * 2.0;
         }
+        else
+        {
+            double t = (adjustedCont + eps) / (2.0 * eps);
+            double s = t * t * (3.0 - 2.0 * t);
+            double waterVal = -std::pow(eps, 0.6) * 3.0;
+            double landVal = std::pow(eps, 0.5) * 2.0;
+            cont = waterVal + s * (landVal - waterVal);
+        }
 
+        double erosionFactor = remap(erosionNoise.noise(wx * 0.0001, wz * 0.0001, 20.0));
+        if (cont > 0)
+        {
+            cont *= (1.1 - erosionFactor);
+        }
+
+        double climateScale = 0.000001;
         return {
-            remap(tempNoise.noise(wx * 0.0001, wz * 0.0001, 0.0)),
-            remap(moistNoise.noise(wx * 0.0001, wz * 0.0001, 10.0)),
+            remap(tempNoise.noise(wx * climateScale, wz * climateScale, 0.0)),
+            remap(moistNoise.noise(wx * climateScale, wz * climateScale, 10.0)),
             cont,
-            remap(erosionNoise.noise(wx * 0.00005, wz * 0.00005, 20.0)),
-            remap(weirdNoise.noise(wx * 0.0001, wz * 0.0001, 30.0))};
+            remap(erosionNoise.noise(wx * climateScale, wz * climateScale, 20.0)),
+            remap(weirdNoise.noise(wx * climateScale, wz * climateScale, 30.0))};
     }
 
     Biome getBiomeAt(double x, double z)

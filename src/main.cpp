@@ -66,14 +66,14 @@ int main()
     glfwSetWindowUserPointer(window, &camera);
     glfwSetScrollCallback(window, Camera::ScrollCallback);
 
-    unsigned int terrainWidth = 500;
-    unsigned int terrainDepth = 500;
+    unsigned int terrainWidth = 3000;
+    unsigned int terrainDepth = 3000;
     float worldSize = std::max((float)terrainWidth, (float)terrainDepth);
     float terrainHeight = 200.0f;
     int seed = 123456789;
     Terrain terrain(terrainWidth, terrainDepth, worldSize, terrainHeight, seed);
 
-    terrain.biomeManager.exportWorldBiomeMap(1024, 1024, 200000, 200000);
+    // terrain.biomeManager.exportWorldBiomeMap(2048, 2048, 1600000, 1600000);
 
     double prevTime = 0.0;
     double crntTime = 0.0;

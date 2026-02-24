@@ -34,21 +34,37 @@ Mesh *TerrainChunk::generateChunkMesh(int startX, int startZ, int size, float sc
     std::vector<GLuint> indices;
     std::vector<Texture> textures;
 
+    int cacheSize = size + 3;
+    std::vector<float> heightCache(cacheSize * cacheSize);
+
+    for (int z = -1; z <= size + 1; z++)
+    {
+        for (int x = -1; x <= size + 1; x++)
+        {
+            double worldX = (double)(startX + x) * scale;
+            double worldZ = (double)(startZ + z) * scale;
+            heightCache[(z + 1) * cacheSize + (x + 1)] = (float)parent->getHeight(worldX, worldZ);
+        }
+    }
+
     for (int z = 0; z <= size; z++)
     {
         for (int x = 0; x <= size; x++)
         {
-            double worldX = (double)(startX + x) * scale;
-            double worldZ = (double)(startZ + z) * scale;
-
             Vertex v;
-            float h = (float)parent->getHeight(worldX, worldZ);
-
+            float h = heightCache[(z + 1) * cacheSize + (x + 1)];
             v.position = glm::vec3((float)x * scale, h, (float)z * scale);
 
+            float hL = heightCache[(z + 1) * cacheSize + x];
+            float hR = heightCache[(z + 1) * cacheSize + (x + 2)];
+            float hD = heightCache[z * cacheSize + (x + 1)];
+            float hU = heightCache[(z + 2) * cacheSize + (x + 1)];
+            v.normal = glm::normalize(glm::vec3(hL - hR, 2.0f * scale, hD - hU));
+
+            double worldX = (double)(startX + x) * scale;
+            double worldZ = (double)(startZ + z) * scale;
             v.color = parent->biomeManager.getBiomeAt(worldX, worldZ).color;
             v.texUV = glm::vec2((float)x / (float)size, (float)z / (float)size);
-            v.normal = glm::vec3(0.0f, 0.0f, 0.0f);
 
             vertices.push_back(v);
         }
@@ -60,44 +76,13 @@ Mesh *TerrainChunk::generateChunkMesh(int startX, int startZ, int size, float sc
         {
             int row1 = z * (size + 1);
             int row2 = (z + 1) * (size + 1);
-
             indices.push_back(row1 + x);
             indices.push_back(row2 + x);
             indices.push_back(row1 + x + 1);
-
             indices.push_back(row1 + x + 1);
             indices.push_back(row2 + x);
             indices.push_back(row2 + x + 1);
         }
-    }
-
-    for (size_t i = 0; i < indices.size(); i += 3)
-    {
-        Vertex &v0 = vertices[indices[i]];
-        Vertex &v1 = vertices[indices[i + 1]];
-        Vertex &v2 = vertices[indices[i + 2]];
-
-        glm::vec3 edge1 = v1.position - v0.position;
-        glm::vec3 edge2 = v2.position - v0.position;
-        glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
-
-        v0.normal += faceNormal;
-        v1.normal += faceNormal;
-        v2.normal += faceNormal;
-    }
-
-    for (auto &v : vertices)
-    {
-        double wX = (double)worldPos.x + v.position.x;
-        double wZ = (double)worldPos.z + v.position.z;
-
-        float delta = 0.1f;
-        float hL = (float)parent->getHeight(wX - delta, wZ);
-        float hR = (float)parent->getHeight(wX + delta, wZ);
-        float hD = (float)parent->getHeight(wX, wZ - delta);
-        float hU = (float)parent->getHeight(wX, wZ + delta);
-
-        v.normal = glm::normalize(glm::vec3(hL - hR, 2.0f * delta, hD - hU));
     }
 
     return new Mesh(vertices, indices, textures);

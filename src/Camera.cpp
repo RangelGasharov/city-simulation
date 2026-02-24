@@ -15,7 +15,7 @@ void Camera::Matrix(Shader &shader, const char *uniform)
 
 void Camera::Inputs(GLFWwindow *window, float deltaTime)
 {
-    float currentSpeed = speed;
+    float currentSpeed = speed * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         currentSpeed = 4.0f;
 
@@ -108,7 +108,7 @@ void Camera::ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
 
 bool Camera::isInFrustum(TerrainChunk *chunk)
 {
-    float renderDistance = 1500.0f;
+    float renderDistance = 2000.0f;
     float dist = glm::distance(this->Position, chunk->worldPos + glm::vec3(chunk->size / 2, 0, chunk->size / 2));
 
     if (dist > renderDistance)
