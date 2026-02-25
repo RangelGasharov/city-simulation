@@ -43,11 +43,12 @@ public:
                                12.0, 25.0, 6, 0.5, 2.0, 1.0, 0.5, 0.7, 0.2, 0.5, 0.4));
         biomes.push_back(Biome("Desert", {0.9f, 0.8f, 0.4f},
                                8.0, 10.0, 4, 0.5, 2.0, 0.7, 0.9, 0.1, 0.3, 0.2, 0.5));
+        biomes.push_back(Biome("Badlands", {0.8f, 0.4f, 0.2f},
+                               20.0, 40.0, 8, 0.6, 2.0, 0.7, 0.9, 0.1, 0.5, 0.5, 0.5));
         biomes.push_back(Biome("Tundra", {0.7f, 0.8f, 0.8f},
                                5.0, 10.0, 5, 0.5, 2.0, 0.9, 0.1, 0.3, 0.3, 0.5, 0.3));
         biomes.push_back(Biome("Mountains", {0.5f, 0.5f, 0.55f},
-                               60.0, 180.0, 12, 0.5, 2.4, 1.3, 0.3, 0.4, 0.7, 0.3, 0.8));
-
+                               40.0, 120.0, 12, 0.5, 2.4, 1.3, 0.3, 0.4, 0.7, 0.3, 0.8));
         biomes.push_back(Biome("Snowy Peaks", {1.0f, 1.0f, 1.0f},
                                100.0, 250.0, 14, 0.55, 2.5, 1.5, 0.0, 0.4, 0.8, 0.2, 0.9));
     }
@@ -78,7 +79,7 @@ public:
         auto fbm = [&](double nx, double nz, int octaves, double persistence)
         {
             double total = 0;
-            double frequency = 0.000004;
+            double frequency = 0.000003;
             double amplitude = 1.0;
             double maxValue = 0;
             for (int i = 0; i < octaves; i++)
@@ -93,7 +94,8 @@ public:
 
         double contRaw = fbm(wx, wz, 6, 0.5);
         double ridge = 1.0 - std::abs(contRaw);
-        double finalContRaw = (contRaw * 0.8) + (ridge * 0.2);
+        ridge *= ridge;
+        double finalContRaw = (contRaw * 0.78) + (ridge * 0.22);
 
         double waterThreshold = 0.25;
         double adjustedCont = finalContRaw - waterThreshold;
@@ -124,7 +126,7 @@ public:
             cont *= (1.1 - erosionFactor);
         }
 
-        double climateScale = 0.000001;
+        double climateScale = 0.000014;
         return {
             remap(tempNoise.noise(wx * climateScale, wz * climateScale, 0.0)),
             remap(moistNoise.noise(wx * climateScale, wz * climateScale, 10.0)),
@@ -137,17 +139,18 @@ public:
     {
         ClimatePoint climate = getClimate(x, z);
         std::vector<std::pair<const Biome *, double>> candidates;
+
         for (auto &biome : biomes)
         {
             double dx = climate.temperature - biome.temperature;
             double dy = climate.moisture - biome.moisture;
-            double dz = (climate.continentalness - biome.continentalness) * 1.5;
-            double de = climate.erosion - biome.erosion;
+            double dz = (climate.continentalness - biome.continentalness) * 2.0;
+            double de = (climate.erosion - biome.erosion) * 2.0;
             double dw = climate.weirdness - biome.weirdness;
             double dist2 = dx * dx + dy * dy + dz * dz + de * de + dw * dw;
 
             double w = 1.0 / (0.0001 + dist2);
-            w = pow(w, 4.0);
+            w = pow(w, 12.0);
 
             candidates.push_back({&biome, w});
         }

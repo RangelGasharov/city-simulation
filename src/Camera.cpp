@@ -17,7 +17,7 @@ void Camera::Inputs(GLFWwindow *window, float deltaTime)
 {
     float currentSpeed = speed * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        currentSpeed = 4.0f;
+        currentSpeed = 10.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         Position += currentSpeed * Orientation;
