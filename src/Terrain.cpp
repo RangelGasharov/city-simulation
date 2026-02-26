@@ -24,41 +24,32 @@ double smoothRemap(double value, double inMin, double inMax)
 double Terrain::getHeight(glm::vec3 direction)
 {
     glm::vec3 p = glm::normalize(direction);
-
     BiomeManager::ClimatePoint climate = biomeManager.getClimate(p);
     Biome biome = biomeManager.getBiomeAt(p);
 
-    double baseHeight;
+    double baseHeight = 0;
 
     if (climate.continentalness > 0.0)
     {
-        baseHeight = std::pow(climate.continentalness, 0.8) * 40.0;
+        baseHeight = std::pow(climate.continentalness, 0.5) * 70.0;
     }
     else
     {
-        baseHeight = -std::pow(std::abs(climate.continentalness), 1.2) * 60.0;
+        baseHeight = -std::pow(std::abs(climate.continentalness), 1.0) * 130.0;
     }
 
-    double erosionMuliplier = std::clamp(1.0 - climate.erosion, 0.1, 1.0);
+    float freq = 2.5f * (1000.0f / planetRadius);
 
-    float freq = 0.5f;
+    double noiseValue = perlin.fractalNoise(p.x * freq, p.y * freq, p.z * freq, biome.octaves, biome.persistence, biome.lacunarity);
 
-    double noiseValue = perlin.fractalNoise(
-        direction.x * freq,
-        direction.y * freq,
-        direction.z * freq,
-        biome.octaves,
-        biome.persistence,
-        biome.lacunarity);
+    double mountainPower = std::clamp((climate.weirdness - 0.4) / 0.4, 0.0, 1.0);
 
-    double detail = noiseValue * biome.heightScale * erosionMuliplier;
+    double ridge = 1.0 - std::abs(noiseValue);
+    ridge = ridge * ridge;
 
-    double mountainMask = std::clamp((climate.weirdness - 0.5) / 0.3, 0.0, 1.0);
-    double peaks = std::abs(noiseValue) * mountainMask * 80.0;
+    double detail = ridge * biome.heightScale * (0.1 + mountainPower * 0.9);
 
-    double finalHeight = baseHeight + detail + peaks;
-
-    return finalHeight;
+    return baseHeight + detail;
 }
 
 glm::vec2 Terrain::projectToFace(glm::vec3 p, int face)
