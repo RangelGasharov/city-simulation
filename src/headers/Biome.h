@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <vector>
+#include <utility>
 
 struct Biome
 {
@@ -79,9 +81,8 @@ struct Biome
   {
     if (inputs.empty())
     {
-      throw std::runtime_error("blendMultiple called with no inputs");
+      return Biome("Fallback", glm::vec3(0.5f), 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0);
     }
-
     double totalW = 0.0;
     for (auto &in : inputs)
       totalW += in.second;

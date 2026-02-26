@@ -56,60 +56,61 @@ int main()
     glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
     glEnable(GL_FRAMEBUFFER_SRGB);
 
-    Camera camera(width, height, glm::vec3(0.0f, 100.0f, 200.0f));
-    glfwSetWindowUserPointer(window, &camera);
     glfwSetScrollCallback(window, Camera::ScrollCallback);
 
-    unsigned int terrainWidth = 100000;
-    unsigned int terrainDepth = 100;
-    float worldSize = std::max((float)terrainWidth, (float)terrainDepth);
-    float terrainHeight = 200.0f;
     int seed = 123;
-    Terrain terrain(terrainWidth, terrainDepth, worldSize, terrainHeight, seed);
+    float planetRadius = 5000.0f;
+    Terrain planet(planetRadius, seed);
 
-    terrain.biomeManager.exportWorldBiomeMap(2048, 2048, 1600000, 1600000);
+    Camera camera(width, height, glm::vec3(0.0f, 0.0f, planetRadius * 3.0f));
+    glfwSetWindowUserPointer(window, &camera);
 
-    double prevTime = 0.0;
-    double crntTime = 0.0;
-    double timeDiff;
+    planet.biomeManager.exportWorldBiomeMap(2048, 1024);
+
+    double prevTime = glfwGetTime();
     unsigned int counter = 0;
 
     while (!glfwWindowShouldClose(window))
     {
-        crntTime = glfwGetTime();
-        timeDiff = crntTime - prevTime;
+        double crntTime = glfwGetTime();
+        double timeDiff = crntTime - prevTime;
         counter++;
 
-        processInput(window);
-        glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-        crntTime = glfwGetTime();
-        timeDiff = crntTime - prevTime;
-        counter++;
-
-        camera.Inputs(window, timeDiff);
-
-        if (timeDiff >= 1.0 / 30.0)
+        if (timeDiff >= 0.1)
         {
             std::string FPS = std::to_string((1.0 / timeDiff) * counter);
             std::string ms = std::to_string((timeDiff / counter) * 1000);
-            std::string newTitle = "City simulation - " + FPS + "FPS / " + ms + "ms";
+            std::string newTitle = "Planet Simulation - " + FPS + " FPS / " + ms + " ms";
             glfwSetWindowTitle(window, newTitle.c_str());
 
             prevTime = crntTime;
             counter = 0;
         }
 
-        camera.updateMatrix(camera.FOV, 0.1f, 10000.0f);
-        terrain.update();
-        terrain.Draw(shaderProgram, camera);
+        static double lastFrame = 0.0;
+        double currentFrame = glfwGetTime();
+        float deltaTime = (float)(currentFrame - lastFrame);
+        lastFrame = currentFrame;
+
+        camera.Inputs(window, deltaTime);
+        float near = 2.0f;
+        float far = 50000.0f;
+        camera.updateMatrix(45.0f, near, far);
+
+        glClearColor(0.02f, 0.02f, 0.05f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        shaderProgram.Activate();
+        planet.update(camera.Position);
+        planet.Draw(shaderProgram, camera);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

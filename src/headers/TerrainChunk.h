@@ -17,13 +17,17 @@ public:
     Mesh *mesh;
     float size;
     int gridX, gridZ;
+    int faceIndex;
 
-    TerrainChunk(int x, int z, int chunkSize, float worldScale, Terrain *parent);
-    void generate(float scale, Terrain *parent);
+    TerrainChunk(int x, int z, int chunkSize, int face, Terrain *parent);
+    ~TerrainChunk();
+
+    void generate(Terrain *parent);
     void Draw(Shader &shader, Camera &camera);
 
 private:
-    Mesh *generateChunkMesh(int startX, int startZ, int size, float scale, Terrain *parent);
+    glm::vec3 getLocalCubePos(int x, int z, float worldScale, float planetRadius);
+    Mesh *generateChunkMesh(Terrain *parent);
 };
 
 #endif
