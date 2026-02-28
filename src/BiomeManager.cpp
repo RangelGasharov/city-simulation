@@ -13,11 +13,11 @@ BiomeManager::BiomeManager(unsigned int seed)
 
     biomes.push_back(Biome("Plains", {0.4f, 0.7f, 0.2f}, 10.0, 15.0, 6, 0.5, 2.0, 0.8, 0.5, 0.4, 0.2, 0.3, 0.2));
     biomes.push_back(Biome("Forest", {0.1f, 0.5f, 0.1f}, 12.0, 25.0, 6, 0.5, 2.0, 1.0, 0.5, 0.8, 0.2, 0.5, 0.4));
-    biomes.push_back(Biome("Beach", {0.9f, 0.8f, 0.5f}, 1.0, 2.0, 3, 0.5, 2.0, 0.4, 0.7, 0.4, 0.05, 0.8, 0.2));
+    biomes.push_back(Biome("Beach", {1.0f * 244 / 255, 1.0f * 232 / 255, 1.0f * 124 / 255}, 1.0, 2.0, 3, 0.5, 2.0, 0.4, 0.7, 0.4, 0.003, 0.8, 0.35));
 
-    biomes.push_back(Biome("Jungle", {0.0f, 0.3f, 0.0f}, 15.0, 40.0, 8, 0.6, 2.1, 1.1, 0.85, 0.95, 0.2, 0.6, 0.4));
-    biomes.push_back(Biome("Sand Desert", {0.9f, 0.8f, 0.4f}, 8.0, 10.0, 4, 0.5, 2.0, 0.7, 1.0, 0.05, 0.3, 0.2, 0.3));
-    biomes.push_back(Biome("Badlands", {0.8f, 0.4f, 0.2f}, 20.0, 60.0, 8, 0.6, 2.0, 0.7, 1.0, 0.05, 0.4, 0.3, 0.5));
+    biomes.push_back(Biome("Jungle", {0.0f, 0.3f, 0.0f}, 15.0, 40.0, 8, 0.6, 2.1, 1.1, 0.8, 0.95, 0.2, 0.6, 0.4));
+    biomes.push_back(Biome("Sand Desert", {0.9f, 0.8f, 0.4f}, 8.0, 10.0, 4, 0.5, 2.0, 0.7, 0.9, 0.1, 0.3, 0.2, 0.3));
+    biomes.push_back(Biome("Badlands", {0.8f, 0.4f, 0.2f}, 20.0, 60.0, 8, 0.6, 2.0, 0.7, 0.9, 0.1, 0.3, 0.8, 0.3));
 
     biomes.push_back(Biome("Tundra", {0.7f, 0.8f, 0.8f}, 5.0, 10.0, 5, 0.5, 2.0, 0.9, 0.2, 0.3, 0.2, 0.5, 0.3));
     biomes.push_back(Biome("Snow Desert", {0.8f, 0.9f, 0.9f}, 8.0, 10.0, 4, 0.5, 2.0, 0.7, 0.1, 0.05, 0.3, 0.2, 0.4));
@@ -76,18 +76,18 @@ BiomeManager::ClimatePoint BiomeManager::getClimate(glm::vec3 direction)
     }
 
     double mFreq = 2.30;
-    double mRaw = (moistNoise.noise(p.x * mFreq, p.y * mFreq, p.z * mFreq) + 1.0) * 0.5;
-    // double mRaw = (moistNoise.fractalNoise(p.x * mFreq, p.y * mFreq, p.z * mFreq, 8, 0.5, 2.0) + 1.0) * 0.5;
+    // double mRaw = (moistNoise.noise(p.x * mFreq, p.y * mFreq, p.z * mFreq) + 1.0) * 0.5;
+    double mRaw = (moistNoise.fractalNoise(p.x * mFreq, p.y * mFreq, p.z * mFreq, 4, 0.5, 2.0) + 1.0) * 0.5;
     double moisture = 3.0 * mRaw * mRaw - 2.0 * mRaw * mRaw * mRaw;
 
     double wFreq = 2.80;
-    double wRaw = (weirdNoise.noise(p.x * wFreq, p.y * wFreq, p.z * wFreq) + 1.0) * 0.5;
-    // double wRaw = (weirdNoise.fractalNoise(p.x * wFreq, p.y * wFreq, p.z * wFreq, 8, 0.5, 2.0) + 1.0) * 0.5;
+    // double wRaw = (weirdNoise.noise(p.x * wFreq, p.y * wFreq, p.z * wFreq) + 1.0) * 0.5;
+    double wRaw = (weirdNoise.fractalNoise(p.x * wFreq, p.y * wFreq, p.z * wFreq, 4, 0.5, 2.0) + 1.0) * 0.5;
     double weirdness = std::pow(wRaw, 2.2);
 
-    double eFreq = 1.80;
-    double eRaw = (erosionNoise.noise(p.x * eFreq, p.y * eFreq, p.z * eFreq) + 1.0) * 0.5;
-    // double eRaw = (erosionNoise.fractalNoise(p.x * eFreq, p.y * eFreq, p.z * eFreq, 8, 0.5, 2.0) + 1.0) * 0.5;
+    double eFreq = 5.80;
+    // double eRaw = (erosionNoise.noise(p.x * eFreq, p.y * eFreq, p.z * eFreq) + 1.0) * 0.5;
+    double eRaw = (erosionNoise.fractalNoise(p.x * eFreq, p.y * eFreq, p.z * eFreq, 4, 0.5, 2.0) + 1.0) * 0.5;
     double erosion = std::pow(eRaw, 1.1);
 
     return {
@@ -110,7 +110,7 @@ Biome BiomeManager::getBiomeAt(glm::vec3 direction)
     {
         double dx = (climate.temperature - biome.temperature) * 3.5;
         double dy = (climate.moisture - biome.moisture) * 1.4;
-        double dz = (climate.continentalness - biome.continentalness) * 4.0;
+        double dz = (climate.continentalness - biome.continentalness) * 3.5;
         double de = (climate.erosion - biome.erosion) * 2.5;
         double dw = (climate.weirdness - biome.weirdness) * 8.0;
 
