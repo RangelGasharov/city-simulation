@@ -66,14 +66,14 @@ int main()
 
     glfwSetScrollCallback(window, Camera::ScrollCallback);
 
-    int seed = 123;
-    float planetRadius = 5000.0f;
+    int seed = 6575122;
+    float planetRadius = 1000000.0f;
     Terrain planet(planetRadius, seed);
 
     Camera camera(width, height, glm::vec3(0.0f, 0.0f, planetRadius * 3.0f));
     glfwSetWindowUserPointer(window, &camera);
 
-    planet.biomeManager.exportWorldBiomeMap(2048, 1024);
+    // planet.biomeManager.exportWorldBiomeMap(2048, 1024);
 
     double prevTime = glfwGetTime();
     unsigned int counter = 0;
@@ -102,13 +102,14 @@ int main()
 
         camera.Inputs(window, deltaTime);
         float near = 2.0f;
-        float far = 50000.0f;
+        float far = 10000000.0f;
         camera.updateMatrix(45.0f, near, far);
 
         glClearColor(0.02f, 0.02f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shaderProgram.Activate();
+        glUniform1f(glGetUniformLocation(shaderProgram.ID, "far"), far);
         planet.update(camera.Position);
         planet.Draw(shaderProgram, camera);
 

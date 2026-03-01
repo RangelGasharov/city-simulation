@@ -1,11 +1,12 @@
 #include "headers/Camera.h"
 #include "headers/TerrainChunk.h"
+#include "headers/shaderClass.h"
 
-Camera::Camera(int width, int height, glm::vec3 position)
+Camera::Camera(int width, int height, glm::dvec3 position)
 {
-    Camera::width = width;
-    Camera::height = height;
-    Position = position;
+    this->width = width;
+    this->height = height;
+    this->Position = position;
 }
 
 void Camera::Matrix(Shader &shader, const char *uniform)
@@ -15,54 +16,49 @@ void Camera::Matrix(Shader &shader, const char *uniform)
 
 void Camera::Inputs(GLFWwindow *window, float deltaTime)
 {
-    float currentSpeed = speed * deltaTime;
+    float distFromCenter = (float)glm::length(Position);
+    float currentSpeed = (distFromCenter * 0.5f + speed) * deltaTime;
+
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        currentSpeed = 10.0f;
+        currentSpeed *= 10.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        Position += currentSpeed * Orientation;
+        Position += glm::dvec3(Orientation) * (double)currentSpeed;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        Position -= currentSpeed * Orientation;
+        Position -= glm::dvec3(Orientation) * (double)currentSpeed;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        Position -= glm::normalize(glm::cross(Orientation, Up)) * currentSpeed;
+        Position -= glm::dvec3(glm::normalize(glm::cross(Orientation, Up))) * (double)currentSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        Position += glm::normalize(glm::cross(Orientation, Up)) * currentSpeed;
+        Position += glm::dvec3(glm::normalize(glm::cross(Orientation, Up))) * (double)currentSpeed;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        Position += currentSpeed * Up;
+        Position += glm::dvec3(Up) * (double)currentSpeed;
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        Position -= currentSpeed * Up;
-
-    float rotationAmount = glm::radians(20.0f * deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        yaw -= glm::degrees(rotationAmount);
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        yaw += glm::degrees(rotationAmount);
+        Position -= glm::dvec3(Up) * (double)currentSpeed;
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
     {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-
         if (firstClick)
         {
-            glfwSetCursorPos(window, width / 2, height / 2);
+            glfwSetCursorPos(window, width / 2.0, height / 2.0);
             firstClick = false;
         }
 
         double mouseX, mouseY;
         glfwGetCursorPos(window, &mouseX, &mouseY);
 
-        float rotX = sensitivity * (mouseY - height / 2) / height;
-        float rotY = sensitivity * (mouseX - width / 2) / width;
+        float rotX = sensitivity * (float)(mouseY - height / 2.0) / height;
+        float rotY = sensitivity * (float)(mouseX - width / 2.0) / width;
 
-        pitch += rotX;
-        yaw -= rotY;
+        pitch -= rotX;
+        yaw += rotY;
 
         if (pitch > 89.0f)
             pitch = 89.0f;
         if (pitch < -89.0f)
             pitch = -89.0f;
 
-        glfwSetCursorPos(window, width / 2, height / 2);
+        glfwSetCursorPos(window, width / 2.0, height / 2.0);
     }
     else
     {
@@ -84,11 +80,8 @@ void Camera::updateOrientationFromAngles()
 
 void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane)
 {
-    glm::mat4 view = glm::mat4(1.0f);
-    glm::mat4 projection = glm::mat4(1.0f);
-
-    view = glm::lookAt(Position, Position + Orientation, Up);
-    projection = glm::perspective(glm::radians(FOVdeg), (float)width / height, nearPlane, farPlane);
+    glm::mat4 projection = glm::perspective(glm::radians(FOVdeg), (float)width / height, nearPlane, farPlane);
+    glm::mat4 view = glm::lookAt(glm::vec3(0.0f), Orientation, Up);
 
     cameraMatrix = projection * view;
 }
@@ -96,27 +89,23 @@ void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane)
 void Camera::ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
 {
     Camera *cam = static_cast<Camera *>(glfwGetWindowUserPointer(window));
-    if (!cam)
-        return;
-
-    cam->FOV -= (float)yOffset * 2.0f;
-    if (cam->FOV < 10.0f)
-        cam->FOV = 10.0f;
-    if (cam->FOV > 120.0f)
-        cam->FOV = 120.0f;
+    if (cam)
+    {
+        cam->FOV -= (float)yOffset * 2.0f;
+        cam->FOV = glm::clamp(cam->FOV, 10.0f, 120.0f);
+    }
 }
 
 bool Camera::isInFrustum(TerrainChunk *chunk)
 {
-    float renderDistance = 2000.0f;
-    float dist = glm::distance(this->Position, chunk->worldPos + glm::vec3(chunk->size / 2, 0, chunk->size / 2));
+    glm::dvec3 chunkCenter = chunk->worldPos;
+    double dist = glm::distance(this->Position, chunkCenter);
 
-    if (dist > renderDistance)
+    if (dist > (double)chunk->size * 500000.0)
         return false;
 
-    glm::vec3 toChunk = glm::normalize((chunk->worldPos + glm::vec3(chunk->size / 2, 0, chunk->size / 2)) - this->Position);
+    glm::dvec3 toChunk = glm::normalize(chunkCenter - this->Position);
+    double dot = glm::dot(glm::dvec3(this->Orientation), toChunk);
 
-    float dot = glm::dot(this->Orientation, toChunk);
-
-    return dot > -0.2f;
+    return dot > -0.2;
 }

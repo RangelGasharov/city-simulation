@@ -56,10 +56,10 @@ BiomeManager::ClimatePoint BiomeManager::getClimate(glm::vec3 direction)
     glm::vec3 p = glm::normalize(direction);
 
     double latitude = std::abs(p.y);
-    double tempBase = 1.0 - std::pow(latitude, 2.0);
+    double tempBase = 1.0 - std::pow(latitude, 1.7);
     double tFreq = 10.0;
-    double tNoise = tempNoise.fractalNoise(p.x * tFreq, p.y * tFreq, p.z * tFreq, 8, 0.5, 2.0);
-    double temperature = tempBase * 0.85 + tNoise * 0.15;
+    double tNoise = tempNoise.fractalNoise(p.x * tFreq, p.y * tFreq, p.z * tFreq, 4, 0.5, 2.0);
+    double temperature = tempBase * 0.8 + tNoise * 0.2;
 
     double contRaw = fbm3D(direction * 1.2f, 8, 0.55, contNoise);
 
@@ -108,8 +108,8 @@ Biome BiomeManager::getBiomeAt(glm::vec3 direction)
 
     for (auto &biome : biomes)
     {
-        double dx = (climate.temperature - biome.temperature) * 3.5;
-        double dy = (climate.moisture - biome.moisture) * 1.4;
+        double dx = (climate.temperature - biome.temperature) * 5.0;
+        double dy = (climate.moisture - biome.moisture) * 2.0;
         double dz = (climate.continentalness - biome.continentalness) * 3.5;
         double de = (climate.erosion - biome.erosion) * 2.5;
         double dw = (climate.weirdness - biome.weirdness) * 8.0;

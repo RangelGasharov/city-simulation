@@ -2,6 +2,7 @@
 #define TERRAIN_CHUNK_H
 
 #include "../include/glm/glm.hpp"
+#include <vector>
 
 class Mesh;
 class Terrain;
@@ -10,23 +11,26 @@ class Camera;
 
 class TerrainChunk
 {
-
 public:
-    bool isGenerated = false;
-    glm::vec3 worldPos;
-    Mesh *mesh;
-    float size;
-    int gridX, gridZ;
+    // Quadtree Daten
+    double u, v, size; // Bereich im Face-Space (-1.0 bis 1.0)
     int faceIndex;
+    int lodLevel;
 
-    TerrainChunk(int x, int z, int chunkSize, int face, Terrain *parent);
+    bool isGenerated = false;
+    bool isSplit = false;
+
+    glm::dvec3 worldPos; // Mittelpunkt in double für Präzision
+    Mesh *mesh = nullptr;
+    TerrainChunk *children[4] = {nullptr, nullptr, nullptr, nullptr};
+
+    TerrainChunk(double u, double v, double size, int face, int lod, Terrain *parent);
     ~TerrainChunk();
 
-    void generate(Terrain *parent);
+    void update(glm::dvec3 cameraPos, Terrain *parent);
     void Draw(Shader &shader, Camera &camera);
 
 private:
-    glm::vec3 getLocalCubePos(int x, int z, float worldScale, float planetRadius);
     Mesh *generateChunkMesh(Terrain *parent);
 };
 

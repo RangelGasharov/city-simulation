@@ -14,6 +14,7 @@ uniform mat4 model;
 uniform mat4 translation;
 uniform mat4 rotation;
 uniform mat4 scale;
+uniform float far;
 
 void main()
 {
@@ -21,5 +22,9 @@ void main()
     Normal = aNormal;
     color = aColor;
     texCoord = mat2(0.0, -1.0, 1.0, 0.0) * aTex;
+    
     gl_Position = camMatrix * vec4(crntPos, 1.0);
+
+    float C = 1.0;
+    gl_Position.z = (2.0 * log(C * gl_Position.w + 1.0) / log(C * far + 1.0) - 1.0) * gl_Position.w;
 }
