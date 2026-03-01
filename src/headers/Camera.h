@@ -22,8 +22,9 @@ public:
 
     bool firstClick = true;
     int width, height;
-    float speed = 10.0f;
+    float speed = 1.0f;
     float sensitivity = 100.0f;
+    double lastX = 0.0, lastY = 0.0;
     float FOV = 45.0f;
     float yaw = -90.0f;
     float pitch = 0.0f;
@@ -32,7 +33,7 @@ public:
 
     void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
     void Matrix(Shader &shader, const char *uniform);
-    void Inputs(GLFWwindow *window, float deltaTime);
+    void Inputs(GLFWwindow *window, float deltaTime, float planetRadius, double currentTerrainHeight);
     void updateOrientationFromAngles();
     static void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
 

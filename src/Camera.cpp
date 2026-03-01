@@ -14,59 +14,63 @@ void Camera::Matrix(Shader &shader, const char *uniform)
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
 }
 
-void Camera::Inputs(GLFWwindow *window, float deltaTime)
+void Camera::Inputs(GLFWwindow *window, float deltaTime, float planetRadius, double currentTerrainHeight)
 {
-    float distFromCenter = (float)glm::length(Position);
-    float currentSpeed = (distFromCenter * 0.5f + speed) * deltaTime;
+    double altitude = glm::length(Position) - planetRadius;
+    double dynamicSpeed = std::max(2.0, altitude * 0.8) * deltaTime;
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        currentSpeed *= 10.0f;
+        dynamicSpeed *= 10.0;
 
+    glm::dvec3 dir = glm::dvec3(0.0);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        Position += glm::dvec3(Orientation) * (double)currentSpeed;
+        dir += glm::dvec3(Orientation);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        Position -= glm::dvec3(Orientation) * (double)currentSpeed;
+        dir -= glm::dvec3(Orientation);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        Position -= glm::dvec3(glm::normalize(glm::cross(Orientation, Up))) * (double)currentSpeed;
+        dir -= glm::normalize(glm::cross(glm::dvec3(Orientation), glm::dvec3(Up)));
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        Position += glm::dvec3(glm::normalize(glm::cross(Orientation, Up))) * (double)currentSpeed;
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        Position += glm::dvec3(Up) * (double)currentSpeed;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        Position -= glm::dvec3(Up) * (double)currentSpeed;
+        dir += glm::normalize(glm::cross(glm::dvec3(Orientation), glm::dvec3(Up)));
+
+    Position += dir * dynamicSpeed;
+
+    double minSafeDist = planetRadius + currentTerrainHeight + 2.0;
+    if (glm::length(Position) < minSafeDist)
+    {
+        Position = glm::normalize(Position) * minSafeDist;
+    }
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
     {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        if (firstClick)
-        {
-            glfwSetCursorPos(window, width / 2.0, height / 2.0);
-            firstClick = false;
-        }
-
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         double mouseX, mouseY;
         glfwGetCursorPos(window, &mouseX, &mouseY);
 
-        float rotX = sensitivity * (float)(mouseY - height / 2.0) / height;
-        float rotY = sensitivity * (float)(mouseX - width / 2.0) / width;
+        if (firstClick)
+        {
+            lastX = mouseX;
+            lastY = mouseY;
+            firstClick = false;
+        }
 
-        pitch -= rotX;
-        yaw += rotY;
+        float velocityX = (float)(mouseX - lastX) * 0.1f;
+        float velocityY = (float)(mouseY - lastY) * 0.1f;
 
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
+        lastX = mouseX;
+        lastY = mouseY;
 
-        glfwSetCursorPos(window, width / 2.0, height / 2.0);
+        yaw += velocityX;
+        pitch -= velocityY;
+
+        pitch = glm::clamp(pitch, -89.0f, 89.0f);
+
+        updateOrientationFromAngles();
     }
     else
     {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         firstClick = true;
     }
-
-    updateOrientationFromAngles();
 }
 
 void Camera::updateOrientationFromAngles()
@@ -77,12 +81,10 @@ void Camera::updateOrientationFromAngles()
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     Orientation = glm::normalize(direction);
 }
-
 void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane)
 {
-    glm::mat4 projection = glm::perspective(glm::radians(FOVdeg), (float)width / height, nearPlane, farPlane);
     glm::mat4 view = glm::lookAt(glm::vec3(0.0f), Orientation, Up);
-
+    glm::mat4 projection = glm::perspective(glm::radians(FOVdeg), (float)width / height, nearPlane, farPlane);
     cameraMatrix = projection * view;
 }
 
