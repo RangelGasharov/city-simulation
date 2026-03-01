@@ -5,6 +5,7 @@
 #include "../include/glm/glm.hpp"
 #include "Perlin.h"
 #include "BiomeManager.h"
+#include "ThreadPool.h"
 
 class TerrainChunk;
 class Shader;
@@ -17,6 +18,9 @@ public:
     Perlin perlin;
 
     float planetRadius;
+    int seed;
+    ThreadPool threadPool;
+    glm::dvec3 lastCameraPos;
     TerrainChunk *faces[6];
 
     Terrain(float radius, unsigned int seed);

@@ -53,18 +53,17 @@ void Camera::Inputs(GLFWwindow *window, float deltaTime, float planetRadius, dou
             firstClick = false;
         }
 
-        float velocityX = (float)(mouseX - lastX) * 0.1f;
-        float velocityY = (float)(mouseY - lastY) * 0.1f;
-
+        yaw += (mouseX - lastX) * 0.1f;
+        pitch -= (mouseY - lastY) * 0.1f;
+        pitch = glm::clamp(pitch, -89.0f, 89.0f);
         lastX = mouseX;
         lastY = mouseY;
 
-        yaw += velocityX;
-        pitch -= velocityY;
-
-        pitch = glm::clamp(pitch, -89.0f, 89.0f);
-
-        updateOrientationFromAngles();
+        glm::vec3 front;
+        front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        front.y = sin(glm::radians(pitch));
+        front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        Orientation = glm::normalize(front);
     }
     else
     {

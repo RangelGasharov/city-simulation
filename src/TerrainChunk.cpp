@@ -1,8 +1,5 @@
 #include "headers/TerrainChunk.h"
 #include "headers/Terrain.h"
-#include "headers/Mesh.h"
-#include <algorithm>
-#include <thread>
 
 TerrainChunk::TerrainChunk(double u, double v, double size, int face, int lod, Terrain *parent)
     : u(u), v(v), size(size), faceIndex(face), lodLevel(lod)
@@ -18,15 +15,16 @@ TerrainChunk::~TerrainChunk()
         for (int i = 0; i < 4; i++)
             delete children[i];
     }
-    if (mesh)
-        delete mesh;
-    delete pendingData;
+    delete mesh;
+    if (pendingData)
+        delete pendingData;
 }
 
 void TerrainChunk::update(glm::dvec3 cameraPos, Terrain *parent)
 {
     double distance = glm::distance(cameraPos, worldPos);
-    bool shouldSplit = (distance < size * parent->planetRadius * 1.5) && (lodLevel < 18);
+
+    bool shouldSplit = (distance < size * parent->planetRadius * 3.0) && (lodLevel < 18);
 
     if (shouldSplit)
     {
@@ -45,9 +43,7 @@ void TerrainChunk::update(glm::dvec3 cameraPos, Terrain *parent)
         {
             children[i]->update(cameraPos, parent);
             if (!children[i]->mesh && !children[i]->isSplit)
-            {
                 allChildrenReady = false;
-            }
         }
 
         if (allChildrenReady && mesh)
@@ -75,6 +71,8 @@ void TerrainChunk::update(glm::dvec3 cameraPos, Terrain *parent)
 
         if (hasDataReady && pendingData)
         {
+            if (mesh)
+                delete mesh;
             mesh = new Mesh(pendingData->vertices, pendingData->indices);
             delete pendingData;
             pendingData = nullptr;
@@ -86,10 +84,16 @@ void TerrainChunk::update(glm::dvec3 cameraPos, Terrain *parent)
 void TerrainChunk::generateAsync(Terrain *parent)
 {
     isGenerating = true;
-    std::thread([this, parent]()
-                {
+    glm::dvec3 camPos = parent->lastCameraPos;
+    double dist = glm::distance(camPos, worldPos);
+
+    int priority = (int)(1000000.0 - dist);
+
+    parent->threadPool.enqueue(priority, [this, parent]()
+                               {
         MeshData* data = new MeshData();
-        const int res = 64;
+        
+        const int res = (lodLevel < 5) ? 16 : (lodLevel < 10 ? 32 : 64);
         double step = size / (double)res;
 
         for (int z = 0; z <= res; z++) {
@@ -101,35 +105,47 @@ void TerrainChunk::generateAsync(Terrain *parent)
                 glm::dvec3 absPos = sphereDir * (double)(parent->planetRadius + h);
 
                 Vertex vtx;
-                vtx.position = glm::vec3(absPos - worldPos);
+                vtx.position = glm::vec3(absPos - worldPos); 
                 vtx.normal = glm::vec3(sphereDir);
                 vtx.color = parent->biomeManager.getBiomeAt(glm::vec3(sphereDir)).color;
+                vtx.texUV = glm::vec2((float)x / (float)res, (float)z / (float)res);
                 data->vertices.push_back(vtx);
             }
         }
+
         for (int z = 0; z < res; z++) {
             for (int x = 0; x < res; x++) {
-                int r1 = z * (res + 1); int r2 = (z + 1) * (res + 1);
-                data->indices.push_back(r1 + x); data->indices.push_back(r1 + x + 1); data->indices.push_back(r2 + x);
-                data->indices.push_back(r1 + x + 1); data->indices.push_back(r2 + x + 1); data->indices.push_back(r2 + x);
+                int r1 = z * (res + 1);
+                int r2 = (z + 1) * (res + 1);
+                data->indices.push_back(r1 + x);
+                data->indices.push_back(r1 + x + 1);
+                data->indices.push_back(r2 + x);
+                data->indices.push_back(r1 + x + 1);
+                data->indices.push_back(r2 + x + 1);
+                data->indices.push_back(r2 + x);
             }
         }
+
         this->pendingData = data;
         this->isGenerating = false;
-        this->hasDataReady = true; })
-        .detach();
+        this->hasDataReady = true; });
 }
 
 void TerrainChunk::Draw(Shader &shader, Camera &camera)
 {
     if (isSplit)
     {
-        bool childrenHaveMeshes = true;
+        bool childrenRenderable = true;
         for (int i = 0; i < 4; i++)
+        {
             if (!children[i]->mesh && !children[i]->isSplit)
-                childrenHaveMeshes = false;
+            {
+                childrenRenderable = false;
+                break;
+            }
+        }
 
-        if (childrenHaveMeshes)
+        if (childrenRenderable)
         {
             for (int i = 0; i < 4; i++)
                 children[i]->Draw(shader, camera);

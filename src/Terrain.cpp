@@ -2,10 +2,13 @@
 #include "headers/TerrainChunk.h"
 #include <algorithm>
 
-Terrain::Terrain(float radius, unsigned int seed) : perlin(seed), biomeManager(seed + 1337)
+Terrain::Terrain(float radius, unsigned int seed)
+    : perlin(seed),
+      biomeManager(seed + 1337),
+      threadPool(std::thread::hardware_concurrency()),
+      planetRadius(radius),
+      seed(seed)
 {
-    this->planetRadius = radius;
-    // Initialisiere 6 Quadtrees (einen für jede Würfelseite)
     for (int i = 0; i < 6; i++)
     {
         faces[i] = new TerrainChunk(-1.0, -1.0, 2.0, i, 0, this);
@@ -20,10 +23,10 @@ Terrain::~Terrain()
 
 void Terrain::update(glm::vec3 cameraPos)
 {
-    glm::dvec3 camPosD = glm::dvec3(cameraPos);
+    lastCameraPos = glm::dvec3(cameraPos);
     for (int i = 0; i < 6; i++)
     {
-        faces[i]->update(camPosD, this);
+        faces[i]->update(lastCameraPos, this);
     }
 }
 
