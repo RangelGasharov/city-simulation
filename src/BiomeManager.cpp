@@ -121,7 +121,7 @@ Biome BiomeManager::getBiomeAt(glm::vec3 direction)
             minSquareDist = d2;
     }
 
-    double blendingSharpness = 8.0;
+    double blendingSharpness = 12.0;
 
     for (size_t i = 0; i < biomes.size(); ++i)
     {

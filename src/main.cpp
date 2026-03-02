@@ -66,11 +66,11 @@ int main()
 
     glfwSetScrollCallback(window, Camera::ScrollCallback);
 
-    int seed = 6575122;
-    float planetRadius = 10000000.0f;
+    int seed = 9812346;
+    float planetRadius = 100000000.0f;
     Terrain planet(planetRadius, seed);
 
-    Camera camera(width, height, glm::vec3(0.0f, 0.0f, planetRadius * 3.0f));
+    Camera camera(width, height, glm::vec3(0.0f, 0.0f, planetRadius * 2.0f), planetRadius);
     glfwSetWindowUserPointer(window, &camera);
 
     // planet.biomeManager.exportWorldBiomeMap(2048, 1024);
@@ -105,7 +105,7 @@ int main()
 
         float altitude = (float)(glm::length(camera.Position) - planetRadius);
         float near = std::max(0.1f, altitude * 0.01f);
-        float far = 4 * planetRadius;
+        float far = 40 * planetRadius;
         camera.updateMatrix(45.0f, near, far);
 
         glClearColor(0.02f, 0.02f, 0.05f, 1.0f);

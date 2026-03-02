@@ -23,6 +23,7 @@ Terrain::~Terrain()
 
 void Terrain::update(glm::vec3 cameraPos)
 {
+    uploadsThisFrame = 0;
     lastCameraPos = glm::dvec3(cameraPos);
     for (int i = 0; i < 6; i++)
     {

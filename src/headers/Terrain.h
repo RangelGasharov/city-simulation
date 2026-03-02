@@ -22,6 +22,7 @@ public:
     ThreadPool threadPool;
     glm::dvec3 lastCameraPos;
     TerrainChunk *faces[6];
+    int uploadsThisFrame = 0;
 
     Terrain(float radius, unsigned int seed);
     ~Terrain();

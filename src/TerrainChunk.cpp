@@ -23,8 +23,9 @@ TerrainChunk::~TerrainChunk()
 void TerrainChunk::update(glm::dvec3 cameraPos, Terrain *parent)
 {
     double distance = glm::distance(cameraPos, worldPos);
+    double splitFactor = 1.5;
 
-    bool shouldSplit = (distance < size * parent->planetRadius * 3.0) && (lodLevel < 18);
+    bool shouldSplit = (distance < size * parent->planetRadius * splitFactor) && (lodLevel < 18);
 
     if (shouldSplit)
     {
@@ -42,6 +43,7 @@ void TerrainChunk::update(glm::dvec3 cameraPos, Terrain *parent)
         for (int i = 0; i < 4; i++)
         {
             children[i]->update(cameraPos, parent);
+
             if (!children[i]->mesh && !children[i]->isSplit)
                 allChildrenReady = false;
         }
@@ -54,16 +56,6 @@ void TerrainChunk::update(glm::dvec3 cameraPos, Terrain *parent)
     }
     else
     {
-        if (isSplit)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                delete children[i];
-                children[i] = nullptr;
-            }
-            isSplit = false;
-        }
-
         if (!mesh && !isGenerating && !hasDataReady)
         {
             generateAsync(parent);
@@ -71,12 +63,25 @@ void TerrainChunk::update(glm::dvec3 cameraPos, Terrain *parent)
 
         if (hasDataReady && pendingData)
         {
-            if (mesh)
-                delete mesh;
-            mesh = new Mesh(pendingData->vertices, pendingData->indices);
-            delete pendingData;
-            pendingData = nullptr;
-            hasDataReady = false;
+            if (parent->uploadsThisFrame < 4)
+            {
+                mesh = new Mesh(pendingData->vertices, pendingData->indices);
+                parent->uploadsThisFrame++;
+
+                delete pendingData;
+                pendingData = nullptr;
+                hasDataReady = false;
+
+                if (isSplit)
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        delete children[i];
+                        children[i] = nullptr;
+                    }
+                    isSplit = false;
+                }
+            }
         }
     }
 }
@@ -93,7 +98,7 @@ void TerrainChunk::generateAsync(Terrain *parent)
                                {
         MeshData* data = new MeshData();
         
-        const int res = (lodLevel < 5) ? 16 : (lodLevel < 10 ? 32 : 64);
+        const int res = (lodLevel < 3) ? 64: 32;
         double step = size / (double)res;
 
         for (int z = 0; z <= res; z++) {

@@ -28,14 +28,18 @@ public:
     float FOV = 45.0f;
     float yaw = -90.0f;
     float pitch = 0.0f;
+    float planetRadius;
+    bool isOrbiting = false;
+    double lastMouseX, lastMouseY;
 
-    Camera(int width, int height, glm::dvec3 position);
+    Camera(int width, int height, glm::dvec3 position, float planetRadius);
 
     void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
     void Matrix(Shader &shader, const char *uniform);
     void Inputs(GLFWwindow *window, float deltaTime, float planetRadius, double currentTerrainHeight);
     void updateOrientationFromAngles();
     static void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
+    void applyCollision(double planetRadius, double terrainHeight);
 
     bool isInFrustum(TerrainChunk *chunk);
 };
