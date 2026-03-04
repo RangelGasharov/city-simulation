@@ -33,6 +33,39 @@ glm::dvec3 GetMouseWorldDir(Camera *cam, GLFWwindow *window)
     return glm::normalize(glm::dvec3(ray_world) - cam->Position);
 }
 
+void Camera::updateCloseOrientation()
+{
+    double currentDist = glm::length(Position);
+    double altitude = currentDist - planetRadius;
+
+    double maxOrbitAlt = planetRadius * 0.05;
+    double minOrbitAlt = 50.0;
+
+    double groundFactor = 1.0 - std::clamp((altitude - minOrbitAlt) / (maxOrbitAlt - minOrbitAlt), 0.0, 1.0);
+
+    groundFactor = std::pow(groundFactor, 4.0);
+
+    double pitchAngle = glm::mix(glm::radians(90.0), glm::radians(25.0), groundFactor);
+
+    glm::dvec3 planetUp = glm::normalize(Position);
+
+    glm::dvec3 right = glm::cross(glm::dvec3(Orientation), planetUp);
+    if (glm::length(right) < 0.001)
+    {
+        right = glm::cross(glm::dvec3(Up), planetUp);
+    }
+    right = glm::normalize(right);
+
+    glm::dvec3 forward = glm::normalize(glm::cross(planetUp, right));
+
+    glm::dvec3 newOrientation = forward * cos(pitchAngle) - planetUp * sin(pitchAngle);
+    Orientation = glm::normalize(glm::vec3(newOrientation));
+
+    float clampedY = std::clamp(Orientation.y, -1.0f, 1.0f);
+    pitch = glm::degrees(asin(clampedY));
+    yaw = glm::degrees(atan2(Orientation.z, Orientation.x));
+}
+
 void Camera::Inputs(GLFWwindow *window, float deltaTime, float planetRadius, double currentTerrainHeight)
 {
     double currentDist = glm::length(Position);
@@ -60,7 +93,12 @@ void Camera::Inputs(GLFWwindow *window, float deltaTime, float planetRadius, dou
         dir -= glm::normalize(glm::cross(glm::dvec3(Orientation), glm::dvec3(Up)));
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         dir += glm::normalize(glm::cross(glm::dvec3(Orientation), glm::dvec3(Up)));
-    Position += dir * dynamicSpeed;
+
+    if (glm::length(dir) > 0.0)
+    {
+        Position += dir * dynamicSpeed;
+        updateCloseOrientation();
+    }
 
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
@@ -92,7 +130,7 @@ void Camera::Inputs(GLFWwindow *window, float deltaTime, float planetRadius, dou
             glm::dmat4 rotY = glm::rotate(glm::dmat4(1.0), -deltaY * orbitSensitivity, right);
             Position = glm::dvec3(rotY * glm::dvec4(Position, 1.0));
 
-            Orientation = glm::normalize(glm::vec3(-glm::normalize(Position)));
+            updateCloseOrientation();
         }
 
         lastMouseX = mouseX;
@@ -166,6 +204,7 @@ void Camera::ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
         if (nextDist > cam->planetRadius + 5.0 && nextDist < cam->planetRadius * 20.0)
         {
             cam->Position = nextPos;
+            cam->updateCloseOrientation();
         }
     }
 }

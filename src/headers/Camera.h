@@ -40,6 +40,7 @@ public:
     void updateOrientationFromAngles();
     static void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
     void applyCollision(double planetRadius, double terrainHeight);
+    void updateCloseOrientation();
 
     bool isInFrustum(TerrainChunk *chunk);
 };
